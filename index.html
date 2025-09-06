@@ -151,6 +151,18 @@
                                 <option value="Secreta">Secreta</option>
                             </select>
                         </div>
+                        <div>
+                            <label for="new-corpo-role" class="block text-gray-300 font-medium mb-2">Nível de Acesso</label>
+                            <select id="new-corpo-role" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+                                <option value="praça">Praça</option>
+                                <option value="oficial">Oficial</option>
+                                <option value="comandante">Alto Escalão</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="new-corpo-password" class="block text-gray-300 font-medium mb-2">Senha</label>
+                            <input type="password" id="new-corpo-password" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+                        </div>
                     </div>
                     <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
                         Cadastrar Membro da Corporação
@@ -383,10 +395,10 @@
         let isAuthReady = false;
 
         // User credentials stored in Firestore
-        const USERS_COLLECTION = `artifacts/${firebaseConfig.projectId}/public/data/users`;
-        const CITIZENS_COLLECTION = `artifacts/${firebaseConfig.projectId}/public/data/citizens`;
-        const LOGS_COLLECTION = `artifacts/${firebaseConfig.projectId}/public/data/logs`;
-        const UPLOADS_FOLDER = `artifacts/${firebaseConfig.projectId}/uploads/`;
+        const USERS_COLLECTION = `artifacts/${appId}/public/data/users`;
+        const CITIZENS_COLLECTION = `artifacts/${appId}/public/data/citizens`;
+        const LOGS_COLLECTION = `artifacts/${appId}/public/data/logs`;
+        const UPLOADS_FOLDER = `artifacts/${appId}/uploads/`;
         
         // Esta função deve ser rodada APENAS UMA VEZ para configurar os usuários iniciais.
         // DESCOMENTE A LINHA ABAIXO, execute o site e depois COMENTE NOVAMENTE.
@@ -396,7 +408,7 @@
                 { username: 'comandante2', password: '123', role: 'comandante' },
                 { username: 'oficial1', password: '456', role: 'oficial' },
                 { username: 'oficial2', password: '456', role: 'oficial' },
-                { username: 'soldado', password: '789', role: 'soldado' },
+                { username: 'soldado', password: '789', role: 'praça' },
             ];
             
             const usersCollectionRef = collection(db, USERS_COLLECTION);
@@ -444,7 +456,6 @@
             const citizenDetailModal = document.getElementById('citizen-detail-modal');
             const citizenDetailContent = document.getElementById('citizen-detail-content');
             const closeModalButton = document.getElementById('close-modal-button');
-            const newCivilCharImgInput = document.getElementById('new-civil-char-img');
             const newCivilPorteImgInput = document.getElementById('new-civil-porte-img');
             
             // Tabs logic
@@ -452,15 +463,13 @@
                 corpo: document.getElementById('tab-corpo-button'),
                 civil: document.getElementById('tab-civil-button'),
                 visualizar: document.getElementById('tab-visualizar-button'),
-                log: document.getElementById('tab-log-button'),
-                map: document.getElementById('tab-map-button')
+                log: document.getElementById('tab-log-button')
             };
             tabContents = {
                 corpo: document.getElementById('corpo-content'),
                 civil: document.getElementById('civil-content'),
                 visualizar: document.getElementById('visualizar-content'),
-                log: document.getElementById('log-content'),
-                map: document.getElementById('map-content')
+                log: document.getElementById('log-content')
             };
 
             const switchTab = (activeTab) => {
@@ -493,7 +502,7 @@
             // Permissions based on user role
             const applyPermissions = (role) => {
                 switch (role) {
-                    case 'soldado':
+                    case 'praça':
                         tabButtons.corpo.classList.add('hidden-container');
                         tabButtons.civil.classList.add('hidden-container');
                         tabButtons.log.classList.add('hidden-container');
@@ -515,7 +524,6 @@
             if (tabButtons.civil) tabButtons.civil.addEventListener('click', () => switchTab('civil'));
             if (tabButtons.visualizar) tabButtons.visualizar.addEventListener('click', () => switchTab('visualizar'));
             if (tabButtons.log) tabButtons.log.addEventListener('click', () => switchTab('log'));
-            if (tabButtons.map) tabButtons.map.addEventListener('click', () => switchTab('map'));
 
 
             // Utility function to log actions
@@ -560,7 +568,6 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
                     storage = getStorage(app);
-                    analytics = getAnalytics(app);
 
                     // Sign in anonymously to get a valid user for Firestore rules
                     await signInAnonymously(auth);
@@ -572,7 +579,6 @@
                         citizens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         console.log("Dados do Firestore atualizados.", citizens);
                         renderCitizensList();
-                        renderMapPins();
                     });
 
                     // Listen for real-time updates from the logs collection
@@ -582,7 +588,7 @@
                         renderLogs(logs);
                     });
                     
-                    setupInitialUsers();
+                    // setupInitialUsers();
 
                 } catch (error) {
                     console.error("Erro ao inicializar Firebase:", error);
@@ -656,9 +662,9 @@
             }
 
             // Utility function to upload image
-            const uploadImage = async (file, path) => {
+            const uploadImage = async (file, path, userId) => {
                 if (!file) return null;
-                const storageRef = ref(storage, path + Date.now() + '_' + file.name);
+                const storageRef = ref(storage, `${path}/${userId}/${Date.now()}_${file.name}`);
                 const snapshot = await uploadBytes(storageRef, file);
                 return await getDownloadURL(snapshot.ref);
             };
@@ -667,33 +673,48 @@
             if (addCorpoForm) {
                 addCorpoForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
-                    if (!db || userRole === 'soldado') {
+                    if (!db || userRole === 'praça') {
                         console.error("Ação não permitida para o seu nível de acesso.");
                         return;
                     }
-                    const newCitizen = {
+                    const newUser = {
+                        username: document.getElementById('new-corpo-name').value.trim().replace(/\s+/g, '').toLowerCase(),
+                        password: document.getElementById('new-corpo-password').value.trim(),
+                        role: document.getElementById('new-corpo-role').value,
+                    };
+                    const newCorpoMember = {
                         name: document.getElementById('new-corpo-name').value.trim(),
                         rg: document.getElementById('new-corpo-rg').value.trim(),
                         cnh: document.getElementById('new-corpo-cnh').value,
                         porte: document.getElementById('new-corpo-porte').value,
                         status: document.getElementById('new-corpo-status').value,
-                        birthdate: document.getElementById('new-corpo-birthdate').trim(),
+                        birthdate: document.getElementById('new-corpo-birthdate').value.trim(),
                         policeArea: document.getElementById('new-corpo-police-area').value,
                         isCorpo: true,
+                        role: newUser.role,
                         lastKnownLocation: 'Nenhum'
                     };
+
                     try {
+                        const usersCollectionRef = collection(db, USERS_COLLECTION);
+                        await setDoc(doc(usersCollectionRef, newUser.username), newUser);
+                        
                         const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
-                        await addDoc(citizensCollectionRef, newCitizen);
-                        await logAction('Adicionou Membro da Corporação', `Nome: ${newCitizen.name}, RG: ${newCitizen.rg}`);
+                        await addDoc(citizensCollectionRef, newCorpoMember);
+
+                        await logAction('Adicionou Membro da Corporação', `Nome: ${newCorpoMember.name}, RG: ${newCorpoMember.rg}, Nível: ${newUser.role}`);
                         addCorpoForm.reset();
                         if (addCorpoSuccessMessage) {
-                            addCorpoSuccessMessage.textContent = 'Membro da Corporação cadastrado com sucesso!';
+                            addCorpoSuccessMessage.textContent = 'Membro da Corporação e login cadastrados com sucesso!';
                             addCorpoSuccessMessage.classList.remove('hidden');
-                            setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 3000);
+                            setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 5000);
                         }
                     } catch (e) {
-                        console.error("Erro ao adicionar documento: ", e);
+                        console.error("Erro ao adicionar membro da corporação: ", e);
+                        addCorpoSuccessMessage.textContent = 'Erro ao cadastrar. Verifique as permissões do Firebase.';
+                        addCorpoSuccessMessage.classList.remove('hidden');
+                        addCorpoSuccessMessage.classList.add('text-red-600');
+                        setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 5000);
                     }
                 });
             }
@@ -702,28 +723,32 @@
             if (addCivilForm) {
                 addCivilForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
-                    if (!db || userRole === 'soldado') {
+                    if (!db || userRole === 'praça') {
                         console.error("Ação não permitida para o seu nível de acesso.");
                         return;
                     }
 
                     civilSubmitButton.disabled = true;
                     civilSubmitButton.textContent = 'Salvando...';
+                    addCivilSuccessMessage.classList.add('hidden');
+                    profileErrorMessage.classList.add('hidden');
 
-                    let characterImageURL = null;
                     let porteImageURL = null;
 
                     try {
-                        if (newCivilCharImgInput.files.length > 0) {
-                            characterImageURL = await uploadImage(newCivilCharImgInput.files[0], UPLOADS_FOLDER);
-                        }
+                        const newCivilPorteImgInput = document.getElementById('new-civil-porte-img');
                         if (newCivilPorteImgInput.files.length > 0 && newCivilPorteSelect.value === 'Sim') {
-                            porteImageURL = await uploadImage(newCivilPorteImgInput.files[0], UPLOADS_FOLDER);
+                            const uniqueUploadId = loggedInUser.username || crypto.randomUUID();
+                            porteImageURL = await uploadImage(newCivilPorteImgInput.files[0], UPLOADS_FOLDER, uniqueUploadId);
                         }
                     } catch (e) {
                         console.error("Erro ao fazer upload da imagem:", e);
                         civilSubmitButton.disabled = false;
                         civilSubmitButton.textContent = 'Erro ao Salvar';
+                        addCivilSuccessMessage.textContent = 'Erro ao salvar. Verifique as permissões de Storage do Firebase.';
+                        addCivilSuccessMessage.classList.remove('hidden');
+                        addCivilSuccessMessage.classList.add('text-red-600');
+                        setTimeout(() => addCivilSuccessMessage.classList.add('hidden'), 5000);
                         return;
                     }
 
@@ -738,7 +763,6 @@
                         isCorpo: false,
                         perfilCriminal: generatedProfile.textContent || '',
                         lastKnownLocation: newCivilLocationSelect.value,
-                        characterImageURL: characterImageURL || '',
                         porteDetails: newCivilPorteSelect.value === 'Sim' ? {
                             imageURL: porteImageURL,
                             numero: document.getElementById('new-civil-porte-num').value.trim() || '',
@@ -787,7 +811,7 @@
             // Gemini API call for generating criminal profile
             if (newCivilStatusSelect) {
                 newCivilStatusSelect.addEventListener('change', () => {
-                    if (newCivilStatusSelect.value.includes('Irregular') && userRole !== 'soldado') {
+                    if (newCivilStatusSelect.value.includes('Irregular') && (userRole === 'oficial' || userRole === 'comandante')) {
                         generateProfileButton.classList.remove('hidden');
                     } else {
                         generateProfileButton.classList.add('hidden');
@@ -893,7 +917,7 @@
                             row.classList.add('hover:bg-gray-700', 'transition-colors', 'cursor-pointer');
                             row.dataset.id = citizen.id; // Store Firestore document ID
                             
-                            const actionsCell = userRole === 'soldado' ? '' : `
+                            const actionsCell = userRole === 'praça' ? '' : `
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 space-x-2">
                                     ${userRole === 'comandante' ? `<button class="text-blue-400 hover:text-blue-300 font-semibold" data-action="edit" data-id="${citizen.id}">Editar</button>` : ''}
                                     ${userRole === 'comandante' ? `<button class="text-red-400 hover:text-red-300 font-semibold" data-action="delete" data-id="${citizen.id}">Excluir</button>` : ''}
@@ -914,63 +938,7 @@
                 }
             };
 
-            const renderMapPins = () => {
-                const mapContainer = document.getElementById('map');
-                if (mapContainer) {
-                    // Clear existing pins
-                    document.querySelectorAll('.pin').forEach(pin => pin.remove());
-
-                    const mapImage = new Image();
-                    mapImage.src = 'https://i.imgur.com/vR9c55d.jpg'; // URL da sua imagem de mapa
-                    mapImage.onload = () => {
-                        const mapWidth = mapContainer.clientWidth;
-                        const mapHeight = mapContainer.clientHeight;
-                        const mapRatio = mapImage.naturalWidth / mapImage.naturalHeight;
-                        const containerRatio = mapWidth / mapHeight;
-                        
-                        let displayWidth, displayHeight;
-                        if (containerRatio > mapRatio) {
-                            displayHeight = mapHeight;
-                            displayWidth = mapHeight * mapRatio;
-                        } else {
-                            displayWidth = mapWidth;
-                            displayHeight = mapWidth / mapRatio;
-                        }
-
-                        const mapLocations = {
-                            "Vinewood": { x: 0.81, y: 0.35 },
-                            "Barra da Tijuca": { x: 0.5, y: 0.65 },
-                            "Interior Fluminense": { x: 0.25, y: 0.75 },
-                            "Jardim Botânico": { x: 0.15, y: 0.45 },
-                            "OceanWood Exportações": { x: 0.61, y: 0.22 },
-                            "Via Lagos": { x: 0.75, y: 0.1 },
-                            "Jacarezinho": { x: 0.55, y: 0.45 },
-                            "CPX Rios": { x: 0.65, y: 0.45 }
-                        };
-
-                        citizens.filter(c => c.status.includes('Irregular') && c.lastKnownLocation).forEach(citizen => {
-                            const location = citizen.lastKnownLocation;
-                            if (mapLocations[location]) {
-                                const pin = document.createElement('div');
-                                pin.className = 'pin';
-                                pin.style.left = `${mapLocations[location].x * displayWidth + (mapWidth - displayWidth) / 2}px`;
-                                pin.style.top = `${mapLocations[location].y * displayHeight + (mapHeight - displayHeight) / 2}px`;
-                                pin.onclick = () => renderCitizenDetail(citizen);
-                                mapContainer.appendChild(pin);
-                            }
-                        });
-                    };
-                };
-            };
-            
-            if (listSearchInput) {
-                listSearchInput.addEventListener('input', renderCitizensList);
-            }
-            if (locationFilterSelect) {
-                locationFilterSelect.addEventListener('change', renderCitizensList);
-            }
-
-            // Delegation for Edit/Delete buttons
+            // Delegation for Edit/Delete buttons and show details
             if (citizensTableBody) {
                 citizensTableBody.addEventListener('click', (e) => {
                     const target = e.target;
@@ -1004,7 +972,6 @@
                                 document.getElementById('new-civil-status').value = citizenToEdit.status;
                                 document.getElementById('new-civil-birthdate').value = citizenToEdit.birthdate;
                                 document.getElementById('new-civil-location').value = citizenToEdit.lastKnownLocation || '';
-                                document.getElementById('new-civil-char-img').value = ''; // Reset file input
                                 civilSubmitButton.textContent = 'Atualizar Civil';
                                 switchTab('civil');
                             }
@@ -1038,7 +1005,6 @@
             const renderCitizenDetail = (citizen) => {
                 citizenDetailContent.innerHTML = `
                     <div class="flex items-center space-x-4 mb-4">
-                        ${citizen.characterImageURL ? `<img src="${citizen.characterImageURL}" onerror="this.src='https://placehold.co/100x100/3b82f6/FFFFFF?text=Sem%20Foto'" class="w-24 h-24 rounded-full border-2 border-blue-400 object-cover" alt="Foto do Personagem">` : `<div class="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center border-2 border-blue-400">Sem Foto</div>`}
                         <div>
                             <h2 class="text-3xl font-bold text-white">${citizen.name}</h2>
                             <p class="text-gray-400">RG: ${citizen.rg}</p>
@@ -1054,6 +1020,7 @@
                         </div>
                         ${citizen.isCorpo ? `<div class="p-4 bg-gray-700 rounded-lg">
                             <p class="text-gray-400">Área da Polícia: <span class="text-white">${citizen.policeArea}</span></p>
+                            <p class="text-gray-400">Nível de Acesso: <span class="text-white">${citizen.role || 'N/A'}</span></p>
                         </div>` : ''}
                     </div>
                     ${citizen.porte === 'Sim' && citizen.porteDetails ? `
