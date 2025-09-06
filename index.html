@@ -403,7 +403,6 @@
         
         // Esta função deve ser rodada APENAS UMA VEZ para configurar os usuários iniciais.
         // DESCOMENTE A LINHA ABAIXO, execute o site e depois COMENTE NOVAMENTE.
-        // setupInitialUsers();
         const setupInitialUsers = async () => {
              const initialUsers = [
                 { username: 'admin', password: '123', role: 'comandante' },
@@ -595,8 +594,7 @@
                         const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         renderLogs(logs);
                     });
-
-                    // Uncomment this line to set up initial users in Firestore if needed
+                    
                     // setupInitialUsers();
 
                 } catch (error) {
@@ -692,7 +690,7 @@
                         cnh: document.getElementById('new-corpo-cnh').value,
                         porte: document.getElementById('new-corpo-porte').value,
                         status: document.getElementById('new-corpo-status').value,
-                        birthdate: document.getElementById('new-corpo-birthdate').value.trim(),
+                        birthdate: document.getElementById('new-corpo-birthdate').trim(),
                         policeArea: document.getElementById('new-corpo-police-area').value,
                         isCorpo: true,
                         lastKnownLocation: 'Nenhum'
@@ -936,7 +934,7 @@
                     document.querySelectorAll('.pin').forEach(pin => pin.remove());
 
                     const mapImage = new Image();
-                    mapImage.src = 'https://i.imgur.com/uR1dO6m.jpg'; // URL da sua imagem de mapa
+                    mapImage.src = 'https://i.imgur.com/vR9c55d.jpg'; // URL da sua imagem de mapa
                     mapImage.onload = () => {
                         const mapWidth = mapContainer.clientWidth;
                         const mapHeight = mapContainer.clientHeight;
