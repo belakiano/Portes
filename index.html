@@ -1,1078 +1,2149 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Consulta PM</title>
-    <!-- Inclui a biblioteca Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d1117;
-            color: #e2e8f0;
-        }
-        .hidden-container {
-            display: none;
-        }
-        .tab-button {
-            background-color: #2d3748;
-            color: #cbd5e1;
-        }
-        .tab-button.active {
-            background-color: #4a5568;
-            color: #ffffff;
-        }
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #4299e1;
-            animation: spin 1s ease infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .bg-card {
-            background-color: #1a202c;
-        }
-        #map {
-            width: 100%;
-            height: 500px;
-            background-image: url('https://i.imgur.com/vR9c55d.jpg');
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-        .pin {
-            width: 20px;
-            height: 20px;
-            background-color: red;
-            border-radius: 50%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-        }
-    </style>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Consulta PM</title>
+
+    <!-- Inclui a biblioteca Tailwind CSS -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            background-color: #0d1117;
+
+            color: #e2e8f0;
+
+        }
+
+        .hidden-container {
+
+            display: none;
+
+        }
+
+        .tab-button {
+
+            background-color: #2d3748;
+
+            color: #cbd5e1;
+
+        }
+
+        .tab-button.active {
+
+            background-color: #4a5568;
+
+            color: #ffffff;
+
+        }
+
+        .table-container {
+
+            max-height: 400px;
+
+            overflow-y: auto;
+
+        }
+
+        .spinner {
+
+            border: 4px solid rgba(255, 255, 255, 0.1);
+
+            width: 36px;
+
+            height: 36px;
+
+            border-radius: 50%;
+
+            border-left-color: #4299e1;
+
+            animation: spin 1s ease infinite;
+
+        }
+
+        @keyframes spin {
+
+            0% { transform: rotate(0deg); }
+
+            100% { transform: rotate(360deg); }
+
+        }
+
+        pre {
+
+            white-space: pre-wrap;
+
+            word-wrap: break-word;
+
+        }
+
+        .bg-card {
+
+            background-color: #1a202c;
+
+        }
+
+        #map {
+
+            width: 100%;
+
+            height: 500px;
+
+            background-image: url('https://i.imgur.com/vR9c55d.jpg');
+
+            background-size: cover;
+
+            background-position: center;
+
+            position: relative;
+
+        }
+
+        .pin {
+
+            width: 20px;
+
+            height: 20px;
+
+            background-color: red;
+
+            border-radius: 50%;
+
+            position: absolute;
+
+            transform: translate(-50%, -50%);
+
+            cursor: pointer;
+
+        }
+
+    </style>
+
 </head>
+
 <body class="flex items-center justify-center min-h-screen p-4">
-    <!-- Contêiner do formulário de login -->
-    <div id="login-container" class="bg-card rounded-xl shadow-2xl p-8 w-full max-w-md">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-white">Login</h1>
-            <p class="text-gray-400 mt-2">Acesso Restrito</p>
-        </header>
 
-        <form id="login-form" class="space-y-4">
-            <div>
-                <label for="username" class="block text-gray-300 font-medium mb-2">Usuário</label>
-                <input type="text" id="username" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            </div>
-            <div>
-                <label for="password" class="block text-gray-300 font-medium mb-2">Senha</label>
-                <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            </div>
-            <p id="error-message" class="text-red-600 text-center font-semibold hidden"></p>
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                Entrar
-            </button>
-        </form>
-    </div>
+    <!-- Contêiner do formulário de login -->
 
-    <!-- Contêiner do sistema de consulta (inicialmente escondido) -->
-    <div id="main-container" class="hidden-container bg-card rounded-xl shadow-2xl p-8 w-full max-w-4xl">
-        <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center space-x-4">
-                <img src="https://placehold.co/60x60/3b82f6/FFFFFF?text=PM" alt="Police Badge" class="h-12 w-12 rounded-full">
-                <h1 class="text-3xl font-bold text-white">Sistema de Consulta PM</h1>
-            </div>
-            <button id="logout-button" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
-                Sair
-            </button>
-        </header>
-        
-        <!-- Navegação por abas -->
-        <div class="flex border-b border-gray-700 mb-6">
-            <button id="tab-corpo-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all active">Cadastrar Membro da Corporação</button>
-            <button id="tab-civil-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Cadastrar Civil</button>
-            <button id="tab-visualizar-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Visualizar Cidadãos</button>
-            <button id="tab-log-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Registro de Atividades</button>
-            <button id="tab-map-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Mapa</button>
-        </div>
+    <div id="login-container" class="bg-card rounded-xl shadow-2xl p-8 w-full max-w-md">
 
-        <!-- Conteúdo das abas -->
-        <div id="tab-content">
-            <!-- Conteúdo da aba 'Cadastrar Membro da Corporação' -->
-            <div id="corpo-content" class="space-y-4">
-                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2">Painel de Administração</h2>
-                <form id="add-corpo-form" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="new-corpo-name" class="block text-gray-300 font-medium mb-2">Nome</label>
-                            <input type="text" id="new-corpo-name" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                        </div>
-                        <div>
-                            <label for="new-corpo-rg" class="block text-gray-300 font-medium mb-2">RG</label>
-                            <input type="text" id="new-corpo-rg" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                        </div>
-                        <div>
-                            <label for="new-corpo-cnh" class="block text-gray-300 font-medium mb-2">CNH</label>
-                            <select id="new-corpo-cnh" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Sim">Sim</option>
-                                <option value="Não">Não</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-corpo-porte" class="block text-gray-300 font-medium mb-2">Porte de Arma</label>
-                            <select id="new-corpo-porte" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Sim">Sim</option>
-                                <option value="Não">Não</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-corpo-status" class="block text-gray-300 font-medium mb-2">Status</label>
-                            <select id="new-corpo-status" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Regular">Regular</option>
-                                <option value="Irregular - Mandado de Busca">Irregular - Mandado de Busca</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-corpo-birthdate" class="block text-gray-300 font-medium mb-2">Data de Nascimento</label>
-                            <input type="text" id="new-corpo-birthdate" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg" placeholder="DD/MM/AAAA">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="new-corpo-police-area" class="block text-gray-300 font-medium mb-2">Área da Polícia</label>
-                            <select id="new-corpo-police-area" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Polícia Civil">Polícia Civil</option>
-                                <option value="Polícia Militar">Polícia Militar</option>
-                                <option value="PRF">PRF</option>
-                                <option value="Secreta">Secreta</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-corpo-role" class="block text-gray-300 font-medium mb-2">Nível de Acesso</label>
-                            <select id="new-corpo-role" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="praça">Praça</option>
-                                <option value="oficial">Oficial</option>
-                                <option value="comandante">Alto Escalão</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-corpo-password" class="block text-gray-300 font-medium mb-2">Senha</label>
-                            <input type="password" id="new-corpo-password" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
-                        Cadastrar Membro da Corporação
-                    </button>
-                </form>
-                <p id="add-corpo-success-message" class="text-green-600 text-center font-semibold mt-4 hidden"></p>
-            </div>
+        <header class="text-center mb-8">
 
-            <!-- Conteúdo da aba 'Cadastrar Civil' -->
-            <div id="civil-content" class="hidden-container space-y-4">
-                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2">Registro de Civis</h2>
-                <form id="add-civil-form" class="space-y-4">
-                    <input type="hidden" id="edit-civil-id">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="new-civil-name" class="block text-gray-300 font-medium mb-2">Nome</label>
-                            <input type="text" id="new-civil-name" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                        </div>
-                        <div>
-                            <label for="new-civil-rg" class="block text-gray-300 font-medium mb-2">RG</label>
-                            <input type="text" id="new-civil-rg" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                        </div>
-                        <div>
-                            <label for="new-civil-cnh" class="block text-gray-300 font-medium mb-2">CNH</label>
-                            <select id="new-civil-cnh" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Sim">Sim</option>
-                                <option value="Não">Não</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-civil-porte" class="block text-gray-300 font-medium mb-2">Porte de Arma</label>
-                            <select id="new-civil-porte" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Sim">Sim</option>
-                                <option value="Não">Não</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-civil-status" class="block text-gray-300 font-medium mb-2">Status</label>
-                            <select id="new-civil-status" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="Regular">Regular</option>
-                                <option value="Irregular - Mandado de Busca">Irregular - Mandado de Busca</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="new-civil-birthdate" class="block text-gray-300 font-medium mb-2">Data de Nascimento</label>
-                            <input type="text" id="new-civil-birthdate" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg" placeholder="DD/MM/AAAA">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="new-civil-location" class="block text-gray-300 font-medium mb-2">Última Localização Conhecida</label>
-                            <select id="new-civil-location" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                <option value="">Não Informado</option>
-                                <option value="Vinewood">Vinewood</option>
-                                <option value="Barra da Tijuca">Barra da Tijuca</option>
-                                <option value="Interior Fluminense">Interior Fluminense</option>
-                                <option value="Jardim Botânico">Jardim Botânico</option>
-                                <option value="OceanWood Exportações">OceanWood Exportações</option>
-                                <option value="Via Lagos">Via Lagos</option>
-                                <option value="Jacarezinho">Jacarezinho</option>
-                                <option value="CPX Rios">CPX Rios</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2 space-y-4" id="porte-details-container" style="display: none;">
-                            <h3 class="text-lg font-semibold text-gray-200 border-b pb-1">Detalhes do Porte de Arma</h3>
-                            <div>
-                                <label for="new-civil-porte-img" class="block text-gray-300 font-medium mb-2">Imagem do Porte</label>
-                                <input type="file" id="new-civil-porte-img" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="new-civil-porte-num" class="block text-gray-300 font-medium mb-2">Nº de Registro</label>
-                                    <input type="text" id="new-civil-porte-num" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="new-civil-porte-esp" class="block text-gray-300 font-medium mb-2">Espécie</label>
-                                    <input type="text" id="new-civil-porte-esp" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="new-civil-porte-cat" class="block text-gray-300 font-medium mb-2">Categoria</label>
-                                    <input type="text" id="new-civil-porte-cat" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="new-civil-porte-marca" class="block text-gray-300 font-medium mb-2">Marca & Calibre</label>
-                                    <input type="text" id="new-civil-porte-marca" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="new-civil-porte-data" class="block text-gray-300 font-medium mb-2">Data de Expedição</label>
-                                    <input type="text" id="new-civil-porte-data" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg" placeholder="DD/MM/AAAA">
-                                </div>
-                                <div>
-                                    <label for="new-civil-porte-validade" class="block text-gray-300 font-medium mb-2">Validade</label>
-                                    <input type="text" id="new-civil-porte-validade" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col space-y-4 mt-4">
-                        <button type="button" id="generate-profile-button" class="hidden w-full bg-yellow-400 text-gray-800 font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all">
-                            ✨ Gerar Perfil Criminal
-                        </button>
-                        <button type="submit" id="submit-civil-button" class="w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                            Cadastrar Civil
-                        </button>
-                    </div>
-                </form>
-                <p id="add-civil-success-message" class="text-green-600 text-center font-semibold mt-4 hidden"></p>
-                <div id="profile-generation-container" class="mt-8 hidden">
-                    <h3 class="text-lg font-semibold text-gray-200 mb-2">Perfil Criminal Gerado:</h3>
-                    <div class="flex items-center justify-center my-4 hidden" id="loading-spinner">
-                        <div class="spinner"></div>
-                    </div>
-                    <pre id="generated-profile" class="bg-gray-800 rounded-xl p-6 border border-gray-700"></pre>
-                    <p id="profile-error-message" class="text-red-600 text-center font-semibold mt-4 hidden"></p>
-                </div>
-            </div>
-            
-            <!-- Conteúdo da aba 'Visualizar Cidadãos' -->
-            <div id="visualizar-content" class="hidden-container space-y-4">
-                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Lista Completa de Cidadãos</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <input type="text" id="list-search-input" placeholder="Buscar por Nome ou RG..." class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    </div>
-                    <div>
-                        <select id="location-filter" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                            <option value="">Todas as Localizações</option>
-                            <option value="Vinewood">Vinewood</option>
-                            <option value="Barra da Tijuca">Barra da Tijuca</option>
-                            <option value="Interior Fluminense">Interior Fluminense</option>
-                            <option value="Jardim Botânico">Jardim Botânico</option>
-                            <option value="OceanWood Exportações">OceanWood Exportações</option>
-                            <option value="Via Lagos">Via Lagos</option>
-                            <option value="Jacarezinho">Jacarezinho</option>
-                            <option value="CPX Rios">CPX Rios</option>
-                            <option value="Não Informado">Não Informado</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="table-container bg-gray-800 rounded-xl border border-gray-700">
-                    <table class="min-w-full divide-y divide-gray-700">
-                        <thead class="sticky top-0 bg-gray-700">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Nome</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">RG</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Área</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Localização</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="citizens-table-body" class="bg-gray-800 divide-y divide-gray-700">
-                            <!-- Rows will be dynamically inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="no-results" class="text-center text-red-600 font-semibold py-4 hidden">Nenhum cidadão encontrado.</div>
-            </div>
+            <h1 class="text-3xl font-bold text-white">Login</h1>
 
-            <!-- Conteúdo da aba 'Registro de Atividades' -->
-            <div id="log-content" class="hidden-container space-y-4">
-                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Registro de Atividades</h2>
-                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 max-h-96 overflow-y-auto">
-                    <ul id="log-list" class="space-y-4 text-sm text-gray-400">
-                        <!-- Log entries will be inserted here -->
-                    </ul>
-                    <div id="no-log-entries" class="text-center text-gray-500 font-semibold py-4 hidden">Nenhuma atividade registrada ainda.</div>
-                </div>
-            </div>
+            <p class="text-gray-400 mt-2">Acesso Restrito</p>
 
-            <!-- Conteúdo da aba 'Mapa' -->
-            <div id="map-content" class="hidden-container space-y-4">
-                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Mapa de Busca</h2>
-                <div id="map"></div>
-            </div>
-            
-            <!-- Modal para visualizar detalhes do cidadão -->
-            <div id="citizen-detail-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-                <div class="relative top-20 mx-auto p-8 border w-11/12 md:w-2/3 shadow-lg rounded-md bg-card">
-                    <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
-                    <div id="citizen-detail-content" class="space-y-4 text-gray-300">
-                        <!-- Conteúdo dinâmico será injetado aqui -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Confirmação para Exclusão -->
-    <div id="confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-card text-gray-200">
-            <h3 class="text-lg font-bold">Confirmar Exclusão</h3>
-            <div class="mt-2 px-7 py-3">
-                <p class="text-sm text-gray-400">Tem certeza que deseja excluir o registro deste cidadão?</p>
-            </div>
-            <div class="mt-4 flex justify-end space-x-4">
-                <button id="cancel-delete-button" class="px-4 py-2 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-700">Cancelar</button>
-                <button id="confirm-delete-button" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js";
-
-        // Global variables provided by the environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = {
-            apiKey: "AIzaSyApPTUEQFx69I-GuBWffXxAzDHmmAhEQqo",
-            authDomain: "portes-6b5a1.firebaseapp.com",
-            projectId: "portes-6b5a1",
-            storageBucket: "portes-6b5a1.firebasestorage.app",
-            messagingSenderId: "320847350633",
-            appId: "1:320847350633:web:e47ac8aa57c8333c1c0bf8",
-            measurementId: "G-3R686HWJ45"
-        };
-        const LLM_MODEL = 'gemini-2.5-flash-preview-05-20';
-        const API_KEY = "";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${LLM_MODEL}:generateContent?key=${API_KEY}`;
-        
-        let db, auth, storage, analytics;
-        let citizens = [];
-        let tabButtons = {};
-        let tabContents = {};
-        let editingCitizenId = null;
-        let userRole = null;
-        let loggedInUser = null;
-        let isAuthReady = false;
-
-        // User credentials stored in Firestore
-        const USERS_COLLECTION = `artifacts/${appId}/public/data/users`;
-        const CITIZENS_COLLECTION = `artifacts/${appId}/public/data/citizens`;
-        const LOGS_COLLECTION = `artifacts/${appId}/public/data/logs`;
-        const UPLOADS_FOLDER = `artifacts/${appId}/uploads/`;
-        
-        // Esta função deve ser rodada APENAS UMA VEZ para configurar os usuários iniciais.
-        // DESCOMENTE A LINHA ABAIXO, execute o site e depois COMENTE NOVAMENTE.
-        const setupInitialUsers = async () => {
-             const initialUsers = [
-                { username: 'admin', password: '123', role: 'comandante' },
-                { username: 'comandante2', password: '123', role: 'comandante' },
-                { username: 'oficial1', password: '456', role: 'oficial' },
-                { username: 'oficial2', password: '456', role: 'oficial' },
-                { username: 'soldado', password: '789', role: 'praça' },
-            ];
-            
-            const usersCollectionRef = collection(db, USERS_COLLECTION);
-            for (const user of initialUsers) {
-                try {
-                    await setDoc(doc(usersCollectionRef, user.username), user);
-                } catch (e) {
-                    console.error("Erro ao configurar usuário:", user.username, e);
-                }
-            }
-            console.log("Usuários iniciais configurados no Firestore.");
-        };
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const loginForm = document.getElementById('login-form');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const errorMessage = document.getElementById('error-message');
-            const loginContainer = document.getElementById('login-container');
-            const mainContainer = document.getElementById('main-container');
-            const logoutButton = document.getElementById('logout-button');
-            const addCorpoForm = document.getElementById('add-corpo-form');
-            const addCorpoSuccessMessage = document.getElementById('add-corpo-success-message');
-            const addCivilForm = document.getElementById('add-civil-form');
-            const addCivilSuccessMessage = document.getElementById('add-civil-success-message');
-            const listSearchInput = document.getElementById('list-search-input');
-            const citizensTableBody = document.getElementById('citizens-table-body');
-            const noResultsMessage = document.getElementById('no-results');
-            const newCivilStatusSelect = document.getElementById('new-civil-status');
-            const generateProfileButton = document.getElementById('generate-profile-button');
-            const generatedProfileContainer = document.getElementById('profile-generation-container');
-            const generatedProfile = document.getElementById('generated-profile');
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const profileErrorMessage = document.getElementById('profile-error-message');
-            const civilSubmitButton = document.getElementById('submit-civil-button');
-            const logList = document.getElementById('log-list');
-            const noLogEntries = document.getElementById('no-log-entries');
-            const modal = document.getElementById('confirmation-modal');
-            const confirmDeleteButton = document.getElementById('confirm-delete-button');
-            const cancelDeleteButton = document.getElementById('cancel-delete-button');
-            const locationFilterSelect = document.getElementById('location-filter');
-            const newCivilLocationSelect = document.getElementById('new-civil-location');
-            const newCivilPorteSelect = document.getElementById('new-civil-porte');
-            const porteDetailsContainer = document.getElementById('porte-details-container');
-            const citizenDetailModal = document.getElementById('citizen-detail-modal');
-            const citizenDetailContent = document.getElementById('citizen-detail-content');
-            const closeModalButton = document.getElementById('close-modal-button');
-            const newCivilPorteImgInput = document.getElementById('new-civil-porte-img');
-            
-            // Tabs logic
-            tabButtons = {
-                corpo: document.getElementById('tab-corpo-button'),
-                civil: document.getElementById('tab-civil-button'),
-                visualizar: document.getElementById('tab-visualizar-button'),
-                log: document.getElementById('tab-log-button')
-            };
-            tabContents = {
-                corpo: document.getElementById('corpo-content'),
-                civil: document.getElementById('civil-content'),
-                visualizar: document.getElementById('visualizar-content'),
-                log: document.getElementById('log-content')
-            };
-
-            const switchTab = (activeTab) => {
-                for (const key in tabButtons) {
-                    const button = tabButtons[key];
-                    const content = tabContents[key];
-                    if (button && content) {
-                        if (key === activeTab) {
-                            button.classList.add('active');
-                            content.classList.remove('hidden-container');
-                        } else {
-                            button.classList.remove('active');
-                            content.classList.add('hidden-container');
-                        }
-                    }
-                }
-            };
-            
-            // Show/hide Porte de Arma details
-            if (newCivilPorteSelect) {
-                newCivilPorteSelect.addEventListener('change', () => {
-                    if (newCivilPorteSelect.value === 'Sim') {
-                        porteDetailsContainer.style.display = 'block';
-                    } else {
-                        porteDetailsContainer.style.display = 'none';
-                    }
-                });
-            }
-
-            // Permissions based on user role
-            const applyPermissions = (role) => {
-                switch (role) {
-                    case 'praça':
-                        tabButtons.corpo.classList.add('hidden-container');
-                        tabButtons.civil.classList.add('hidden-container');
-                        tabButtons.log.classList.add('hidden-container');
-                        break;
-                    case 'oficial':
-                        tabButtons.corpo.classList.remove('hidden-container');
-                        tabButtons.civil.classList.remove('hidden-container');
-                        tabButtons.log.classList.remove('hidden-container');
-                        break;
-                    case 'comandante':
-                        tabButtons.corpo.classList.remove('hidden-container');
-                        tabButtons.civil.classList.remove('hidden-container');
-                        tabButtons.log.classList.remove('hidden-container');
-                        break;
-                }
-            };
-
-            if (tabButtons.corpo) tabButtons.corpo.addEventListener('click', () => switchTab('corpo'));
-            if (tabButtons.civil) tabButtons.civil.addEventListener('click', () => switchTab('civil'));
-            if (tabButtons.visualizar) tabButtons.visualizar.addEventListener('click', () => switchTab('visualizar'));
-            if (tabButtons.log) tabButtons.log.addEventListener('click', () => switchTab('log'));
+        </header>
 
 
-            // Utility function to log actions
-            const logAction = async (action, details) => {
-                if (!db || !isAuthReady || !loggedInUser) {
-                    console.error("Firebase, auth state, or user not ready for logging.");
-                    return;
-                }
-                try {
-                    const logCollectionRef = collection(db, LOGS_COLLECTION);
-                    await addDoc(logCollectionRef, {
-                        userId: loggedInUser.username,
-                        userRole: loggedInUser.role,
-                        action: action,
-                        details: details,
-                        timestamp: new Date().toLocaleString()
-                    });
-                } catch (e) {
-                    console.error("Erro ao registrar log: ", e);
-                }
-            };
-            
-            // Render logs
-            const renderLogs = (logs) => {
-                logList.innerHTML = '';
-                if (logs.length === 0) {
-                    noLogEntries.classList.remove('hidden');
-                } else {
-                    noLogEntries.classList.add('hidden');
-                    logs.forEach(log => {
-                        const li = document.createElement('li');
-                        li.textContent = `${log.timestamp} - [${log.userRole}] Usuário ${log.userId}: ${log.details}`;
-                        logList.appendChild(li);
-                    });
-                }
-            };
 
-            // Initialize Firebase and set up listeners
-            const initializeFirebase = async () => {
-                try {
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-                    storage = getStorage(app);
+        <form id="login-form" class="space-y-4">
 
-                    // Sign in anonymously to get a valid user for Firestore rules
-                    await signInAnonymously(auth);
-                    isAuthReady = true;
+            <div>
 
-                    // Listen for real-time updates from the citizens collection
-                    const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
-                    onSnapshot(citizensCollectionRef, (snapshot) => {
-                        citizens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        console.log("Dados do Firestore atualizados.", citizens);
-                        renderCitizensList();
-                    });
+                <label for="username" class="block text-gray-300 font-medium mb-2">Usuário</label>
 
-                    // Listen for real-time updates from the logs collection
-                    const logsCollectionRef = collection(db, LOGS_COLLECTION);
-                    onSnapshot(logsCollectionRef, (snapshot) => {
-                        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderLogs(logs);
-                    });
-                    
-                    setupInitialUsers();
+                <input type="text" id="username" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
 
-                } catch (error) {
-                    console.error("Erro ao inicializar Firebase:", error);
-                    if (errorMessage) {
-                        errorMessage.textContent = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
-                        errorMessage.classList.remove('hidden');
-                    }
-                }
-            };
-            
-            initializeFirebase();
+            </div>
 
-            // Authentication Logic
-            if (loginForm) {
-                loginForm.addEventListener('submit', async (event) => {
-                    event.preventDefault();
-                    if (!isAuthReady) {
-                        errorMessage.textContent = 'Aguarde, conectando ao servidor...';
-                        errorMessage.classList.remove('hidden');
-                        return;
-                    }
-                    const enteredUsername = usernameInput.value.trim();
-                    const enteredPassword = passwordInput.value.trim();
+            <div>
 
-                    try {
-                        const userDocRef = doc(db, USERS_COLLECTION, enteredUsername);
-                        const userDocSnap = await getDoc(userDocRef);
+                <label for="password" class="block text-gray-300 font-medium mb-2">Senha</label>
 
-                        if (userDocSnap.exists() && userDocSnap.data().password === enteredPassword) {
-                            loggedInUser = userDocSnap.data();
-                            userRole = loggedInUser.role;
-                            loginContainer.classList.add('hidden-container');
-                            mainContainer.classList.remove('hidden-container');
-                            applyPermissions(userRole);
-                            switchTab('visualizar');
-                        } else {
-                            if (errorMessage) {
-                                errorMessage.textContent = 'Usuário ou senha incorretos.';
-                                errorMessage.classList.remove('hidden');
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Erro no login:", e);
-                        errorMessage.textContent = 'Erro no login. Tente novamente mais tarde.';
-                        errorMessage.classList.remove('hidden');
-                    }
-                });
-            }
+                <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
 
-            if (logoutButton) {
-                logoutButton.addEventListener('click', () => {
-                    if (loginContainer && mainContainer) {
-                        loginContainer.classList.remove('hidden-container');
-                        mainContainer.classList.add('hidden-container');
-                    }
-                    userRole = null;
-                    loggedInUser = null;
-                    usernameInput.value = '';
-                    passwordInput.value = '';
-                    for (const key in tabButtons) {
-                        if (tabButtons[key]) {
-                            tabButtons[key].classList.remove('hidden-container');
-                        }
-                    }
-                    if (porteDetailsContainer) porteDetailsContainer.style.display = 'none';
-                    if (generatedProfileContainer) generatedProfileContainer.classList.add('hidden');
-                    if (addCivilSuccessMessage) addCivilSuccessMessage.classList.add('hidden');
-                    if (addCorpoSuccessMessage) addCorpoSuccessMessage.classList.add('hidden');
-                    window.location.reload();
-                });
-            }
+            </div>
 
-            // Utility function to upload image
-            const uploadImage = async (file, path, userId) => {
-                if (!file) return null;
-                const storageRef = ref(storage, `${path}/${userId}/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                return await getDownloadURL(snapshot.ref);
-            };
+            <p id="error-message" class="text-red-600 text-center font-semibold hidden"></p>
 
-            // Admin Panel Logic (Add New Corpo Member)
-            if (addCorpoForm) {
-                addCorpoForm.addEventListener('submit', async (event) => {
-                    event.preventDefault();
-                    if (!db || userRole === 'praça') {
-                        console.error("Ação não permitida para o seu nível de acesso.");
-                        return;
-                    }
-                    const newUser = {
-                        username: document.getElementById('new-corpo-name').value.trim().replace(/\s+/g, '').toLowerCase(),
-                        password: document.getElementById('new-corpo-password').value.trim(),
-                        role: document.getElementById('new-corpo-role').value,
-                    };
-                    const newCorpoMember = {
-                        name: document.getElementById('new-corpo-name').value.trim(),
-                        rg: document.getElementById('new-corpo-rg').value.trim(),
-                        cnh: document.getElementById('new-corpo-cnh').value,
-                        porte: document.getElementById('new-corpo-porte').value,
-                        status: document.getElementById('new-corpo-status').value,
-                        birthdate: document.getElementById('new-corpo-birthdate').value.trim(),
-                        policeArea: document.getElementById('new-corpo-police-area').value,
-                        isCorpo: true,
-                        role: newUser.role,
-                        lastKnownLocation: 'Nenhum'
-                    };
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
 
-                    try {
-                        const usersCollectionRef = collection(db, USERS_COLLECTION);
-                        await setDoc(doc(usersCollectionRef, newUser.username), newUser);
-                        
-                        const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
-                        await addDoc(citizensCollectionRef, newCorpoMember);
+                Entrar
 
-                        await logAction('Adicionou Membro da Corporação', `Nome: ${newCorpoMember.name}, RG: ${newCorpoMember.rg}, Nível: ${newUser.role}`);
-                        addCorpoForm.reset();
-                        if (addCorpoSuccessMessage) {
-                            addCorpoSuccessMessage.textContent = 'Membro da Corporação e login cadastrados com sucesso!';
-                            addCorpoSuccessMessage.classList.remove('hidden');
-                            setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 5000);
-                        }
-                    } catch (e) {
-                        console.error("Erro ao adicionar membro da corporação: ", e);
-                        addCorpoSuccessMessage.textContent = 'Erro ao cadastrar. Verifique as permissões do Firebase.';
-                        addCorpoSuccessMessage.classList.remove('hidden');
-                        addCorpoSuccessMessage.classList.add('text-red-600');
-                        setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 5000);
-                    }
-                });
-            }
+            </button>
 
-            // Admin Panel Logic (Add New Civil)
-            if (addCivilForm) {
-                addCivilForm.addEventListener('submit', async (event) => {
-                    event.preventDefault();
-                    if (!db || userRole === 'praça') {
-                        console.error("Ação não permitida para o seu nível de acesso.");
-                        return;
-                    }
+        </form>
 
-                    civilSubmitButton.disabled = true;
-                    civilSubmitButton.textContent = 'Salvando...';
-                    addCivilSuccessMessage.classList.add('hidden');
-                    profileErrorMessage.classList.add('hidden');
+    </div>
 
-                    let porteImageURL = null;
 
-                    try {
-                        const newCivilPorteImgInput = document.getElementById('new-civil-porte-img');
-                        if (newCivilPorteImgInput.files.length > 0 && newCivilPorteSelect.value === 'Sim') {
-                            const uniqueUploadId = loggedInUser.username || crypto.randomUUID();
-                            porteImageURL = await uploadImage(newCivilPorteImgInput.files[0], UPLOADS_FOLDER, uniqueUploadId);
-                        }
-                    } catch (e) {
-                        console.error("Erro ao fazer upload da imagem:", e);
-                        civilSubmitButton.disabled = false;
-                        civilSubmitButton.textContent = 'Erro ao Salvar';
-                        addCivilSuccessMessage.textContent = 'Erro ao salvar. Verifique as permissões de Storage do Firebase.';
-                        addCivilSuccessMessage.classList.remove('hidden');
-                        addCivilSuccessMessage.classList.add('text-red-600');
-                        setTimeout(() => addCivilSuccessMessage.classList.add('hidden'), 5000);
-                        return;
-                    }
 
-                    const civilData = {
-                        name: document.getElementById('new-civil-name').value.trim(),
-                        rg: document.getElementById('new-civil-rg').value.trim(),
-                        cnh: document.getElementById('new-civil-cnh').value,
-                        porte: document.getElementById('new-civil-porte').value,
-                        status: document.getElementById('new-civil-status').value,
-                        birthdate: document.getElementById('new-civil-birthdate').value.trim(),
-                        policeArea: 'Nenhum',
-                        isCorpo: false,
-                        perfilCriminal: generatedProfile.textContent || '',
-                        lastKnownLocation: newCivilLocationSelect.value,
-                        porteDetails: newCivilPorteSelect.value === 'Sim' ? {
-                            imageURL: porteImageURL,
-                            numero: document.getElementById('new-civil-porte-num').value.trim() || '',
-                            especie: document.getElementById('new-civil-porte-esp').value.trim() || '',
-                            categoria: document.getElementById('new-civil-porte-cat').value.trim() || '',
-                            marca: document.getElementById('new-civil-porte-marca').value.trim() || '',
-                            dataExpedicao: document.getElementById('new-civil-porte-data').value.trim() || '',
-                            validade: document.getElementById('new-civil-porte-validade').value.trim() || ''
-                        } : null
-                    };
+    <!-- Contêiner do sistema de consulta (inicialmente escondido) -->
 
-                    try {
-                        const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
-                        if (editingCitizenId) {
-                            if (userRole === 'comandante') {
-                                await updateDoc(doc(citizensCollectionRef, editingCitizenId), civilData);
-                                await logAction('Editou Civil', `Nome: ${civilData.name}, RG: ${civilData.rg}`);
-                                editingCitizenId = null;
-                                civilSubmitButton.textContent = 'Cadastrar Civil';
-                            } else {
-                                console.error("Ação não permitida para o seu nível de acesso.");
-                                return;
-                            }
-                        } else {
-                            await addDoc(citizensCollectionRef, civilData);
-                            await logAction('Adicionou Civil', `Nome: ${civilData.name}, RG: ${civilData.rg}`);
-                        }
-                        addCivilForm.reset();
-                        if (addCivilSuccessMessage) {
-                            addCivilSuccessMessage.textContent = 'Civil cadastrado com sucesso!';
-                            addCivilSuccessMessage.classList.remove('hidden');
-                            setTimeout(() => addCivilSuccessMessage.classList.add('hidden'), 3000);
-                        }
-                        generatedProfileContainer.classList.add('hidden');
-                        generatedProfile.textContent = '';
-                        if (porteDetailsContainer) porteDetailsContainer.style.display = 'none';
-                    } catch (e) {
-                        console.error("Erro ao adicionar/atualizar documento: ", e);
-                    } finally {
-                        civilSubmitButton.disabled = false;
-                        civilSubmitButton.textContent = 'Cadastrar Civil';
-                    }
-                });
-            }
+    <div id="main-container" class="hidden-container bg-card rounded-xl shadow-2xl p-8 w-full max-w-4xl">
 
-            // Gemini API call for generating criminal profile
-            if (newCivilStatusSelect) {
-                newCivilStatusSelect.addEventListener('change', () => {
-                    if (newCivilStatusSelect.value.includes('Irregular') && (userRole === 'oficial' || userRole === 'comandante')) {
-                        generateProfileButton.classList.remove('hidden');
-                    } else {
-                        generateProfileButton.classList.add('hidden');
-                        generatedProfileContainer.classList.add('hidden');
-                        generatedProfile.textContent = '';
-                    }
-                });
-            }
+        <header class="flex justify-between items-center mb-6">
 
-            if (generateProfileButton) {
-                generateProfileButton.addEventListener('click', async () => {
-                    const civilName = document.getElementById('new-civil-name').value.trim();
-                    if (!civilName) {
-                        profileErrorMessage.textContent = 'Por favor, insira um nome para gerar o perfil.';
-                        profileErrorMessage.classList.remove('hidden');
-                        setTimeout(() => profileErrorMessage.classList.add('hidden'), 3000);
-                        return;
-                    }
+            <div class="flex items-center space-x-4">
 
-                    generatedProfileContainer.classList.remove('hidden');
-                    generatedProfile.textContent = '';
-                    loadingSpinner.classList.remove('hidden');
-                    profileErrorMessage.classList.add('hidden');
+                <img src="https://placehold.co/60x60/3b82f6/FFFFFF?text=PM" alt="Police Badge" class="h-12 w-12 rounded-full">
 
-                    const prompt = `Gere um perfil criminal fictício para a pessoa chamada "${civilName}". O perfil deve incluir um resumo narrativo da história criminosa, uma lista de crimes cometidos, os locais de atuação e uma lista de contatos conhecidos. Responda APENAS com um objeto JSON, sem nenhum texto adicional. A estrutura do JSON deve ser: {"historia": "string", "crimes": ["string"], "locais_de_acao": ["string"], "contatos_conhecidos": ["string"]}.`;
-                    
-                    const payload = {
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                    "historia": { "type": "STRING" },
-                                    "crimes": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                    "locais_de_acao": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                    "contatos_conhecidos": { "type": "ARRAY", "items": { "type": "STRING" } }
-                                },
-                                "propertyOrdering": ["historia", "crimes", "locais_de_acao", "contatos_conhecidos"]
-                            }
-                        }
-                    };
-                    
-                    try {
-                        let retries = 0;
-                        const maxRetries = 3;
-                        let response;
-                        while (retries < maxRetries) {
-                            try {
-                                response = await fetch(API_URL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(payload)
-                                });
-                                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                                break;
-                            } catch (e) {
-                                retries++;
-                                if (retries >= maxRetries) throw e;
-                                await new Promise(res => setTimeout(res, 2 ** retries * 1000));
-                            }
-                        }
+                <h1 class="text-3xl font-bold text-white">Sistema de Consulta PM</h1>
 
-                        const result = await response.json();
-                        const candidate = result?.candidates?.[0];
-                        
-                        if (candidate?.content?.parts?.[0]?.text) {
-                            const jsonText = candidate.content.parts[0].text;
-                            const profileData = JSON.parse(jsonText);
-                            generatedProfile.textContent = `História: ${profileData.historia}\n\nCrimes: ${profileData.crimes.join(', ')}\n\nLocais de Atuação: ${profileData.locais_de_acao.join(', ')}\n\nContatos Conhecidos: ${profileData.contatos_conhecidos.join(', ')}`;
-                        } else {
-                            throw new Error("Resposta da API inválida.");
-                        }
-                    } catch (e) {
-                        console.error("Erro na chamada da API:", e);
-                        profileErrorMessage.textContent = 'Erro ao gerar o perfil. Tente novamente.';
-                        profileErrorMessage.classList.remove('hidden');
-                        generatedProfile.textContent = '';
-                    } finally {
-                        loadingSpinner.classList.add('hidden');
-                    }
-                });
-            }
+            </div>
 
-            // Visualization and Search Logic
-            const renderCitizensList = () => {
-                if (citizensTableBody) {
-                    citizensTableBody.innerHTML = '';
-                    const query = listSearchInput.value.toLowerCase().trim();
-                    const locationFilter = locationFilterSelect.value.toLowerCase();
-                    
-                    const filteredCitizens = citizens.filter(citizen =>
-                        (citizen.name.toLowerCase().includes(query) || citizen.rg.toLowerCase().includes(query)) &&
-                        (locationFilter === '' || citizen.lastKnownLocation?.toLowerCase() === locationFilter)
-                    );
-                    
-                    if (filteredCitizens.length === 0) {
-                        if (noResultsMessage) noResultsMessage.classList.remove('hidden');
-                    } else {
-                        if (noResultsMessage) noResultsMessage.classList.add('hidden');
-                        filteredCitizens.forEach(citizen => {
-                            const row = document.createElement('tr');
-                            row.classList.add('hover:bg-gray-700', 'transition-colors', 'cursor-pointer');
-                            row.dataset.id = citizen.id; // Store Firestore document ID
-                            
-                            const actionsCell = userRole === 'praça' ? '' : `
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 space-x-2">
-                                    ${userRole === 'comandante' ? `<button class="text-blue-400 hover:text-blue-300 font-semibold" data-action="edit" data-id="${citizen.id}">Editar</button>` : ''}
-                                    ${userRole === 'comandante' ? `<button class="text-red-400 hover:text-red-300 font-semibold" data-action="delete" data-id="${citizen.id}">Excluir</button>` : ''}
-                                </td>
-                            `;
+            <button id="logout-button" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
 
-                            row.innerHTML = `
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${citizen.name}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${citizen.rg}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${citizen.status.includes('Irregular') ? 'text-red-400' : 'text-green-400'}">${citizen.status}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${citizen.policeArea}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${citizen.lastKnownLocation || 'N/A'}</td>
-                                ${actionsCell}
-                            `;
-                            citizensTableBody.appendChild(row);
-                        });
-                    }
-                }
-            };
+                Sair
 
-            // Delegation for Edit/Delete buttons and show details
-            if (citizensTableBody) {
-                citizensTableBody.addEventListener('click', (e) => {
-                    const target = e.target;
-                    const action = target.getAttribute('data-action');
-                    const id = target.getAttribute('data-id');
+            </button>
 
-                    if (action) {
-                        // Action buttons clicked (Edit/Delete)
-                        if (userRole === 'comandante' && action === 'edit' && id) {
-                            const citizenToEdit = citizens.find(c => c.id === id);
-                            if (citizenToEdit) {
-                                editingCitizenId = id;
-                                document.getElementById('new-civil-name').value = citizenToEdit.name;
-                                document.getElementById('new-civil-rg').value = citizenToEdit.rg;
-                                document.getElementById('new-civil-cnh').value = citizenToEdit.cnh;
-                                document.getElementById('new-civil-porte').value = citizenToEdit.porte;
-                                if (citizenToEdit.porte === 'Sim') {
-                                    porteDetailsContainer.style.display = 'block';
-                                    if (citizenToEdit.porteDetails) {
-                                        document.getElementById('new-civil-porte-img').value = '';
-                                        document.getElementById('new-civil-porte-num').value = citizenToEdit.porteDetails.numero || '';
-                                        document.getElementById('new-civil-porte-esp').value = citizenToEdit.porteDetails.especie || '';
-                                        document.getElementById('new-civil-porte-cat').value = citizenToEdit.porteDetails.categoria || '';
-                                        document.getElementById('new-civil-porte-marca').value = citizenToEdit.porteDetails.marca || '';
-                                        document.getElementById('new-civil-porte-data').value = citizenToEdit.porteDetails.dataExpedicao || '';
-                                        document.getElementById('new-civil-porte-validade').value = citizenToEdit.porteDetails.validade || '';
-                                    }
-                                } else {
-                                    porteDetailsContainer.style.display = 'none';
-                                }
-                                document.getElementById('new-civil-status').value = citizenToEdit.status;
-                                document.getElementById('new-civil-birthdate').value = citizenToEdit.birthdate;
-                                document.getElementById('new-civil-location').value = citizenToEdit.lastKnownLocation || '';
-                                civilSubmitButton.textContent = 'Atualizar Civil';
-                                switchTab('civil');
-                            }
-                        } else if (userRole === 'comandante' && action === 'delete' && id) {
-                            modal.classList.remove('hidden');
-                            confirmDeleteButton.onclick = async () => {
-                                modal.classList.add('hidden');
-                                try {
-                                    const citizenToDelete = citizens.find(c => c.id === id);
-                                    if (citizenToDelete) {
-                                        await deleteDoc(doc(db, CITIZENS_COLLECTION, id));
-                                        await logAction('Excluiu Cidadão', `Nome: ${citizenToDelete.name}, RG: ${citizenToDelete.rg}`);
-                                    }
-                                } catch (e) {
-                                    console.error("Erro ao excluir documento: ", e);
-                                }
-                            };
-                        }
-                    } else if (target.tagName !== 'BUTTON') {
-                        // Row clicked (not an action button)
-                        const row = target.closest('tr');
-                        const id = row?.dataset?.id;
-                        const citizenToView = citizens.find(c => c.id === id);
-                        if (citizenToView) {
-                            renderCitizenDetail(citizenToView);
-                        }
-                    }
-                });
-            }
+        </header>
 
-            const renderCitizenDetail = (citizen) => {
-                citizenDetailContent.innerHTML = `
-                    <div class="flex items-center space-x-4 mb-4">
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">${citizen.name}</h2>
-                            <p class="text-gray-400">RG: ${citizen.rg}</p>
-                            <p class="text-sm font-semibold ${citizen.status.includes('Irregular') ? 'text-red-400' : 'text-green-400'}">${citizen.status}</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="p-4 bg-gray-700 rounded-lg">
-                            <p class="text-gray-400">CNH: <span class="text-white">${citizen.cnh}</span></p>
-                            <p class="text-gray-400">Porte de Arma: <span class="text-white">${citizen.porte}</span></p>
-                            <p class="text-gray-400">Data de Nascimento: <span class="text-white">${citizen.birthdate}</span></p>
-                            <p class="text-gray-400">Última Localização: <span class="text-white">${citizen.lastKnownLocation || 'N/A'}</span></p>
-                        </div>
-                        ${citizen.isCorpo ? `<div class="p-4 bg-gray-700 rounded-lg">
-                            <p class="text-gray-400">Área da Polícia: <span class="text-white">${citizen.policeArea}</span></p>
-                            <p class="text-gray-400">Nível de Acesso: <span class="text-white">${citizen.role || 'N/A'}</span></p>
-                        </div>` : ''}
-                    </div>
-                    ${citizen.porte === 'Sim' && citizen.porteDetails ? `
-                        <div class="mt-6 p-4 bg-gray-700 rounded-lg">
-                            <h3 class="text-lg font-semibold text-white mb-2">Detalhes do Porte de Arma</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-1 md:col-span-2">
-                                    ${citizen.porteDetails.imageURL ? `<img src="${citizen.porteDetails.imageURL}" onerror="this.src='https://placehold.co/400x200/3b82f6/FFFFFF?text=Imagem%20N%C3%A3o%20Encontrada'" class="w-full rounded-lg object-cover" alt="Imagem do Porte de Arma">` : `<div class="w-full h-auto bg-gray-800 rounded-lg flex items-center justify-center p-4">Sem Imagem</div>`}
-                                </div>
-                                <p class="text-gray-400">Nº de Registro: <span class="text-white">${citizen.porteDetails.numero}</span></p>
-                                <p class="text-gray-400">Espécie: <span class="text-white">${citizen.porteDetails.especie}</span></p>
-                                <p class="text-gray-400">Categoria: <span class="text-white">${citizen.porteDetails.categoria}</span></p>
-                                <p class="text-gray-400">Marca & Calibre: <span class="text-white">${citizen.porteDetails.marca}</span></p>
-                                <p class="text-gray-400">Data de Expedição: <span class="text-white">${citizen.porteDetails.dataExpedicao}</span></p>
-                                <p class="text-gray-400">Validade: <span class="text-white">${citizen.porteDetails.validade}</span></p>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${citizen.status.includes('Irregular') && citizen.perfilCriminal ? `
-                        <div class="mt-6 p-4 bg-gray-700 rounded-lg">
-                            <h3 class="text-lg font-semibold text-white mb-2">Perfil Criminal</h3>
-                            <pre class="bg-gray-800 rounded-lg p-4 text-gray-300 whitespace-pre-wrap">${citizen.perfilCriminal}</pre>
-                        </div>
-                    ` : ''}
-                `;
-                citizenDetailModal.classList.remove('hidden');
-            };
-            
-            if (closeModalButton) {
-                closeModalButton.addEventListener('click', () => {
-                    citizenDetailModal.classList.add('hidden');
-                });
-            }
+        
 
-            if (cancelDeleteButton) {
-                cancelDeleteButton.addEventListener('click', () => {
-                    modal.classList.add('hidden');
-                });
-            }
-        });
-    </script>
+        <!-- Navegação por abas -->
+
+        <div class="flex border-b border-gray-700 mb-6">
+
+            <button id="tab-corpo-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all active">Cadastrar Membro da Corporação</button>
+
+            <button id="tab-civil-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Cadastrar Civil</button>
+
+            <button id="tab-visualizar-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Visualizar Cidadãos</button>
+
+            <button id="tab-log-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Registro de Atividades</button>
+
+            <button id="tab-map-button" class="tab-button px-4 py-2 font-medium rounded-t-lg transition-all">Mapa</button>
+
+        </div>
+
+
+
+        <!-- Conteúdo das abas -->
+
+        <div id="tab-content">
+
+            <!-- Conteúdo da aba 'Cadastrar Membro da Corporação' -->
+
+            <div id="corpo-content" class="space-y-4">
+
+                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2">Painel de Administração</h2>
+
+                <form id="add-corpo-form" class="space-y-4">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div>
+
+                            <label for="new-corpo-name" class="block text-gray-300 font-medium mb-2">Nome</label>
+
+                            <input type="text" id="new-corpo-name" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-rg" class="block text-gray-300 font-medium mb-2">RG</label>
+
+                            <input type="text" id="new-corpo-rg" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-cnh" class="block text-gray-300 font-medium mb-2">CNH</label>
+
+                            <select id="new-corpo-cnh" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Sim">Sim</option>
+
+                                <option value="Não">Não</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-porte" class="block text-gray-300 font-medium mb-2">Porte de Arma</label>
+
+                            <select id="new-corpo-porte" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Sim">Sim</option>
+
+                                <option value="Não">Não</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-status" class="block text-gray-300 font-medium mb-2">Status</label>
+
+                            <select id="new-corpo-status" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Regular">Regular</option>
+
+                                <option value="Irregular - Mandado de Busca">Irregular - Mandado de Busca</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-birthdate" class="block text-gray-300 font-medium mb-2">Data de Nascimento</label>
+
+                            <input type="text" id="new-corpo-birthdate" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg" placeholder="DD/MM/AAAA">
+
+                        </div>
+
+                        <div class="md:col-span-2">
+
+                            <label for="new-corpo-police-area" class="block text-gray-300 font-medium mb-2">Área da Polícia</label>
+
+                            <select id="new-corpo-police-area" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Polícia Civil">Polícia Civil</option>
+
+                                <option value="Polícia Militar">Polícia Militar</option>
+
+                                <option value="PRF">PRF</option>
+
+                                <option value="Secreta">Secreta</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-role" class="block text-gray-300 font-medium mb-2">Nível de Acesso</label>
+
+                            <select id="new-corpo-role" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="praça">Praça</option>
+
+                                <option value="oficial">Oficial</option>
+
+                                <option value="comandante">Alto Escalão</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-corpo-password" class="block text-gray-300 font-medium mb-2">Senha</label>
+
+                            <input type="password" id="new-corpo-password" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
+
+                        Cadastrar Membro da Corporação
+
+                    </button>
+
+                </form>
+
+                <p id="add-corpo-success-message" class="text-green-600 text-center font-semibold mt-4 hidden"></p>
+
+            </div>
+
+
+
+            <!-- Conteúdo da aba 'Cadastrar Civil' -->
+
+            <div id="civil-content" class="hidden-container space-y-4">
+
+                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2">Registro de Civis</h2>
+
+                <form id="add-civil-form" class="space-y-4">
+
+                    <input type="hidden" id="edit-civil-id">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div>
+
+                            <label for="new-civil-name" class="block text-gray-300 font-medium mb-2">Nome</label>
+
+                            <input type="text" id="new-civil-name" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-civil-rg" class="block text-gray-300 font-medium mb-2">RG</label>
+
+                            <input type="text" id="new-civil-rg" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-civil-cnh" class="block text-gray-300 font-medium mb-2">CNH</label>
+
+                            <select id="new-civil-cnh" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Sim">Sim</option>
+
+                                <option value="Não">Não</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-civil-porte" class="block text-gray-300 font-medium mb-2">Porte de Arma</label>
+
+                            <select id="new-civil-porte" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Sim">Sim</option>
+
+                                <option value="Não">Não</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-civil-status" class="block text-gray-300 font-medium mb-2">Status</label>
+
+                            <select id="new-civil-status" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="Regular">Regular</option>
+
+                                <option value="Irregular - Mandado de Busca">Irregular - Mandado de Busca</option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label for="new-civil-birthdate" class="block text-gray-300 font-medium mb-2">Data de Nascimento</label>
+
+                            <input type="text" id="new-civil-birthdate" required class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg" placeholder="DD/MM/AAAA">
+
+                        </div>
+
+                        <div class="md:col-span-2">
+
+                            <label for="new-civil-location" class="block text-gray-300 font-medium mb-2">Última Localização Conhecida</label>
+
+                            <select id="new-civil-location" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                <option value="">Não Informado</option>
+
+                                <option value="Vinewood">Vinewood</option>
+
+                                <option value="Barra da Tijuca">Barra da Tijuca</option>
+
+                                <option value="Interior Fluminense">Interior Fluminense</option>
+
+                                <option value="Jardim Botânico">Jardim Botânico</option>
+
+                                <option value="OceanWood Exportações">OceanWood Exportações</option>
+
+                                <option value="Via Lagos">Via Lagos</option>
+
+                                <option value="Jacarezinho">Jacarezinho</option>
+
+                                <option value="CPX Rios">CPX Rios</option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="md:col-span-2 space-y-4" id="porte-details-container" style="display: none;">
+
+                            <h3 class="text-lg font-semibold text-gray-200 border-b pb-1">Detalhes do Porte de Arma</h3>
+
+                            <div>
+
+                                <label for="new-civil-porte-img" class="block text-gray-300 font-medium mb-2">Imagem do Porte</label>
+
+                                <input type="file" id="new-civil-porte-img" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                <div>
+
+                                    <label for="new-civil-porte-num" class="block text-gray-300 font-medium mb-2">Nº de Registro</label>
+
+                                    <input type="text" id="new-civil-porte-num" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                </div>
+
+                                <div>
+
+                                    <label for="new-civil-porte-esp" class="block text-gray-300 font-medium mb-2">Espécie</label>
+
+                                    <input type="text" id="new-civil-porte-esp" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                </div>
+
+                                <div>
+
+                                    <label for="new-civil-porte-cat" class="block text-gray-300 font-medium mb-2">Categoria</label>
+
+                                    <input type="text" id="new-civil-porte-cat" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                </div>
+
+                                <div>
+
+                                    <label for="new-civil-porte-marca" class="block text-gray-300 font-medium mb-2">Marca & Calibre</label>
+
+                                    <input type="text" id="new-civil-porte-marca" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                </div>
+
+                                <div>
+
+                                    <label for="new-civil-porte-data" class="block text-gray-300 font-medium mb-2">Data de Expedição</label>
+
+                                    <input type="text" id="new-civil-porte-data" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg" placeholder="DD/MM/AAAA">
+
+                                </div>
+
+                                <div>
+
+                                    <label for="new-civil-porte-validade" class="block text-gray-300 font-medium mb-2">Validade</label>
+
+                                    <input type="text" id="new-civil-porte-validade" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="flex flex-col space-y-4 mt-4">
+
+                        <button type="button" id="generate-profile-button" class="hidden w-full bg-yellow-400 text-gray-800 font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all">
+
+                            ✨ Gerar Perfil Criminal
+
+                        </button>
+
+                        <button type="submit" id="submit-civil-button" class="w-full bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+
+                            Cadastrar Civil
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+                <p id="add-civil-success-message" class="text-green-600 text-center font-semibold mt-4 hidden"></p>
+
+                <div id="profile-generation-container" class="mt-8 hidden">
+
+                    <h3 class="text-lg font-semibold text-gray-200 mb-2">Perfil Criminal Gerado:</h3>
+
+                    <div class="flex items-center justify-center my-4 hidden" id="loading-spinner">
+
+                        <div class="spinner"></div>
+
+                    </div>
+
+                    <pre id="generated-profile" class="bg-gray-800 rounded-xl p-6 border border-gray-700"></pre>
+
+                    <p id="profile-error-message" class="text-red-600 text-center font-semibold mt-4 hidden"></p>
+
+                </div>
+
+            </div>
+
+            
+
+            <!-- Conteúdo da aba 'Visualizar Cidadãos' -->
+
+            <div id="visualizar-content" class="hidden-container space-y-4">
+
+                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Lista Completa de Cidadãos</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+                    <div>
+
+                        <input type="text" id="list-search-input" placeholder="Buscar por Nome ou RG..." class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+
+                    </div>
+
+                    <div>
+
+                        <select id="location-filter" class="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+
+                            <option value="">Todas as Localizações</option>
+
+                            <option value="Vinewood">Vinewood</option>
+
+                            <option value="Barra da Tijuca">Barra da Tijuca</option>
+
+                            <option value="Interior Fluminense">Interior Fluminense</option>
+
+                            <option value="Jardim Botânico">Jardim Botânico</option>
+
+                            <option value="OceanWood Exportações">OceanWood Exportações</option>
+
+                            <option value="Via Lagos">Via Lagos</option>
+
+                            <option value="Jacarezinho">Jacarezinho</option>
+
+                            <option value="CPX Rios">CPX Rios</option>
+
+                            <option value="Não Informado">Não Informado</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="table-container bg-gray-800 rounded-xl border border-gray-700">
+
+                    <table class="min-w-full divide-y divide-gray-700">
+
+                        <thead class="sticky top-0 bg-gray-700">
+
+                            <tr>
+
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Nome</th>
+
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">RG</th>
+
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Área</th>
+
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Localização</th>
+
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="citizens-table-body" class="bg-gray-800 divide-y divide-gray-700">
+
+                            <!-- Rows will be dynamically inserted here -->
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div id="no-results" class="text-center text-red-600 font-semibold py-4 hidden">Nenhum cidadão encontrado.</div>
+
+            </div>
+
+
+
+            <!-- Conteúdo da aba 'Registro de Atividades' -->
+
+            <div id="log-content" class="hidden-container space-y-4">
+
+                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Registro de Atividades</h2>
+
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 max-h-96 overflow-y-auto">
+
+                    <ul id="log-list" class="space-y-4 text-sm text-gray-400">
+
+                        <!-- Log entries will be inserted here -->
+
+                    </ul>
+
+                    <div id="no-log-entries" class="text-center text-gray-500 font-semibold py-4 hidden">Nenhuma atividade registrada ainda.</div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Conteúdo da aba 'Mapa' -->
+
+            <div id="map-content" class="hidden-container space-y-4">
+
+                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Mapa de Busca</h2>
+
+                <div id="map"></div>
+
+            </div>
+
+            
+
+            <!-- Modal para visualizar detalhes do cidadão -->
+
+            <div id="citizen-detail-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+
+                <div class="relative top-20 mx-auto p-8 border w-11/12 md:w-2/3 shadow-lg rounded-md bg-card">
+
+                    <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
+
+                    <div id="citizen-detail-content" class="space-y-4 text-gray-300">
+
+                        <!-- Conteúdo dinâmico será injetado aqui -->
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    
+
+    <!-- Modal de Confirmação para Exclusão -->
+
+    <div id="confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-card text-gray-200">
+
+            <h3 class="text-lg font-bold">Confirmar Exclusão</h3>
+
+            <div class="mt-2 px-7 py-3">
+
+                <p class="text-sm text-gray-400">Tem certeza que deseja excluir o registro deste cidadão?</p>
+
+            </div>
+
+            <div class="mt-4 flex justify-end space-x-4">
+
+                <button id="cancel-delete-button" class="px-4 py-2 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-700">Cancelar</button>
+
+                <button id="confirm-delete-button" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Confirmar</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js";
+
+
+
+        // Global variables provided by the environment
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyApPTUEQFx69I-GuBWffXxAzDHmmAhEQqo",
+
+            authDomain: "portes-6b5a1.firebaseapp.com",
+
+            projectId: "portes-6b5a1",
+
+            storageBucket: "portes-6b5a1.firebasestorage.app",
+
+            messagingSenderId: "320847350633",
+
+            appId: "1:320847350633:web:e47ac8aa57c8333c1c0bf8",
+
+            measurementId: "G-3R686HWJ45"
+
+        };
+
+        const LLM_MODEL = 'gemini-2.5-flash-preview-05-20';
+
+        const API_KEY = "";
+
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${LLM_MODEL}:generateContent?key=${API_KEY}`;
+
+        
+
+        let db, auth, storage, analytics;
+
+        let citizens = [];
+
+        let tabButtons = {};
+
+        let tabContents = {};
+
+        let editingCitizenId = null;
+
+        let userRole = null;
+
+        let loggedInUser = null;
+
+        let isAuthReady = false;
+
+
+
+        // User credentials stored in Firestore
+
+        const USERS_COLLECTION = `artifacts/${appId}/public/data/users`;
+
+        const CITIZENS_COLLECTION = `artifacts/${appId}/public/data/citizens`;
+
+        const LOGS_COLLECTION = `artifacts/${appId}/public/data/logs`;
+
+        const UPLOADS_FOLDER = `artifacts/${appId}/uploads/`;
+
+        
+
+        // Esta função deve ser rodada APENAS UMA VEZ para configurar os usuários iniciais.
+
+        // DESCOMENTE A LINHA ABAIXO, execute o site e depois COMENTE NOVAMENTE.
+
+        const setupInitialUsers = async () => {
+
+             const initialUsers = [
+
+                { username: 'admin', password: '123', role: 'comandante' },
+
+                { username: 'comandante2', password: '123', role: 'comandante' },
+
+                { username: 'oficial1', password: '456', role: 'oficial' },
+
+                { username: 'oficial2', password: '456', role: 'oficial' },
+
+                { username: 'soldado', password: '789', role: 'praça' },
+
+            ];
+
+            
+
+            const usersCollectionRef = collection(db, USERS_COLLECTION);
+
+            for (const user of initialUsers) {
+
+                try {
+
+                    await setDoc(doc(usersCollectionRef, user.username), user);
+
+                } catch (e) {
+
+                    console.error("Erro ao configurar usuário:", user.username, e);
+
+                }
+
+            }
+
+            console.log("Usuários iniciais configurados no Firestore.");
+
+        };
+
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            const loginForm = document.getElementById('login-form');
+
+            const usernameInput = document.getElementById('username');
+
+            const passwordInput = document.getElementById('password');
+
+            const errorMessage = document.getElementById('error-message');
+
+            const loginContainer = document.getElementById('login-container');
+
+            const mainContainer = document.getElementById('main-container');
+
+            const logoutButton = document.getElementById('logout-button');
+
+            const addCorpoForm = document.getElementById('add-corpo-form');
+
+            const addCorpoSuccessMessage = document.getElementById('add-corpo-success-message');
+
+            const addCivilForm = document.getElementById('add-civil-form');
+
+            const addCivilSuccessMessage = document.getElementById('add-civil-success-message');
+
+            const listSearchInput = document.getElementById('list-search-input');
+
+            const citizensTableBody = document.getElementById('citizens-table-body');
+
+            const noResultsMessage = document.getElementById('no-results');
+
+            const newCivilStatusSelect = document.getElementById('new-civil-status');
+
+            const generateProfileButton = document.getElementById('generate-profile-button');
+
+            const generatedProfileContainer = document.getElementById('profile-generation-container');
+
+            const generatedProfile = document.getElementById('generated-profile');
+
+            const loadingSpinner = document.getElementById('loading-spinner');
+
+            const profileErrorMessage = document.getElementById('profile-error-message');
+
+            const civilSubmitButton = document.getElementById('submit-civil-button');
+
+            const logList = document.getElementById('log-list');
+
+            const noLogEntries = document.getElementById('no-log-entries');
+
+            const modal = document.getElementById('confirmation-modal');
+
+            const confirmDeleteButton = document.getElementById('confirm-delete-button');
+
+            const cancelDeleteButton = document.getElementById('cancel-delete-button');
+
+            const locationFilterSelect = document.getElementById('location-filter');
+
+            const newCivilLocationSelect = document.getElementById('new-civil-location');
+
+            const newCivilPorteSelect = document.getElementById('new-civil-porte');
+
+            const porteDetailsContainer = document.getElementById('porte-details-container');
+
+            const citizenDetailModal = document.getElementById('citizen-detail-modal');
+
+            const citizenDetailContent = document.getElementById('citizen-detail-content');
+
+            const closeModalButton = document.getElementById('close-modal-button');
+
+            const newCivilPorteImgInput = document.getElementById('new-civil-porte-img');
+
+            
+
+            // Tabs logic
+
+            tabButtons = {
+
+                corpo: document.getElementById('tab-corpo-button'),
+
+                civil: document.getElementById('tab-civil-button'),
+
+                visualizar: document.getElementById('tab-visualizar-button'),
+
+                log: document.getElementById('tab-log-button')
+
+            };
+
+            tabContents = {
+
+                corpo: document.getElementById('corpo-content'),
+
+                civil: document.getElementById('civil-content'),
+
+                visualizar: document.getElementById('visualizar-content'),
+
+                log: document.getElementById('log-content')
+
+            };
+
+
+
+            const switchTab = (activeTab) => {
+
+                for (const key in tabButtons) {
+
+                    const button = tabButtons[key];
+
+                    const content = tabContents[key];
+
+                    if (button && content) {
+
+                        if (key === activeTab) {
+
+                            button.classList.add('active');
+
+                            content.classList.remove('hidden-container');
+
+                        } else {
+
+                            button.classList.remove('active');
+
+                            content.classList.add('hidden-container');
+
+                        }
+
+                    }
+
+                }
+
+            };
+
+            
+
+            // Show/hide Porte de Arma details
+
+            if (newCivilPorteSelect) {
+
+                newCivilPorteSelect.addEventListener('change', () => {
+
+                    if (newCivilPorteSelect.value === 'Sim') {
+
+                        porteDetailsContainer.style.display = 'block';
+
+                    } else {
+
+                        porteDetailsContainer.style.display = 'none';
+
+                    }
+
+                });
+
+            }
+
+
+
+            // Permissions based on user role
+
+            const applyPermissions = (role) => {
+
+                switch (role) {
+
+                    case 'praça':
+
+                        tabButtons.corpo.classList.add('hidden-container');
+
+                        tabButtons.civil.classList.add('hidden-container');
+
+                        tabButtons.log.classList.add('hidden-container');
+
+                        break;
+
+                    case 'oficial':
+
+                        tabButtons.corpo.classList.remove('hidden-container');
+
+                        tabButtons.civil.classList.remove('hidden-container');
+
+                        tabButtons.log.classList.remove('hidden-container');
+
+                        break;
+
+                    case 'comandante':
+
+                        tabButtons.corpo.classList.remove('hidden-container');
+
+                        tabButtons.civil.classList.remove('hidden-container');
+
+                        tabButtons.log.classList.remove('hidden-container');
+
+                        break;
+
+                }
+
+            };
+
+
+
+            if (tabButtons.corpo) tabButtons.corpo.addEventListener('click', () => switchTab('corpo'));
+
+            if (tabButtons.civil) tabButtons.civil.addEventListener('click', () => switchTab('civil'));
+
+            if (tabButtons.visualizar) tabButtons.visualizar.addEventListener('click', () => switchTab('visualizar'));
+
+            if (tabButtons.log) tabButtons.log.addEventListener('click', () => switchTab('log'));
+
+
+
+
+
+            // Utility function to log actions
+
+            const logAction = async (action, details) => {
+
+                if (!db || !isAuthReady || !loggedInUser) {
+
+                    console.error("Firebase, auth state, or user not ready for logging.");
+
+                    return;
+
+                }
+
+                try {
+
+                    const logCollectionRef = collection(db, LOGS_COLLECTION);
+
+                    await addDoc(logCollectionRef, {
+
+                        userId: loggedInUser.username,
+
+                        userRole: loggedInUser.role,
+
+                        action: action,
+
+                        details: details,
+
+                        timestamp: new Date().toLocaleString()
+
+                    });
+
+                } catch (e) {
+
+                    console.error("Erro ao registrar log: ", e);
+
+                }
+
+            };
+
+            
+
+            // Render logs
+
+            const renderLogs = (logs) => {
+
+                logList.innerHTML = '';
+
+                if (logs.length === 0) {
+
+                    noLogEntries.classList.remove('hidden');
+
+                } else {
+
+                    noLogEntries.classList.add('hidden');
+
+                    logs.forEach(log => {
+
+                        const li = document.createElement('li');
+
+                        li.textContent = `${log.timestamp} - [${log.userRole}] Usuário ${log.userId}: ${log.details}`;
+
+                        logList.appendChild(li);
+
+                    });
+
+                }
+
+            };
+
+
+
+            // Initialize Firebase and set up listeners
+
+            const initializeFirebase = async () => {
+
+                try {
+
+                    const app = initializeApp(firebaseConfig);
+
+                    db = getFirestore(app);
+
+                    auth = getAuth(app);
+
+                    storage = getStorage(app);
+
+
+
+                    // Sign in anonymously to get a valid user for Firestore rules
+
+                    await signInAnonymously(auth);
+
+                    isAuthReady = true;
+
+
+
+                    // Listen for real-time updates from the citizens collection
+
+                    const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
+
+                    onSnapshot(citizensCollectionRef, (snapshot) => {
+
+                        citizens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        console.log("Dados do Firestore atualizados.", citizens);
+
+                        renderCitizensList();
+
+                    });
+
+
+
+                    // Listen for real-time updates from the logs collection
+
+                    const logsCollectionRef = collection(db, LOGS_COLLECTION);
+
+                    onSnapshot(logsCollectionRef, (snapshot) => {
+
+                        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        renderLogs(logs);
+
+                    });
+
+                    
+
+                    setupInitialUsers();
+
+
+
+                } catch (error) {
+
+                    console.error("Erro ao inicializar Firebase:", error);
+
+                    if (errorMessage) {
+
+                        errorMessage.textContent = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+
+                        errorMessage.classList.remove('hidden');
+
+                    }
+
+                }
+
+            };
+
+            
+
+            initializeFirebase();
+
+
+
+            // Authentication Logic
+
+            if (loginForm) {
+
+                loginForm.addEventListener('submit', async (event) => {
+
+                    event.preventDefault();
+
+                    if (!isAuthReady) {
+
+                        errorMessage.textContent = 'Aguarde, conectando ao servidor...';
+
+                        errorMessage.classList.remove('hidden');
+
+                        return;
+
+                    }
+
+                    const enteredUsername = usernameInput.value.trim();
+
+                    const enteredPassword = passwordInput.value.trim();
+
+
+
+                    try {
+
+                        const userDocRef = doc(db, USERS_COLLECTION, enteredUsername);
+
+                        const userDocSnap = await getDoc(userDocRef);
+
+
+
+                        if (userDocSnap.exists() && userDocSnap.data().password === enteredPassword) {
+
+                            loggedInUser = userDocSnap.data();
+
+                            userRole = loggedInUser.role;
+
+                            loginContainer.classList.add('hidden-container');
+
+                            mainContainer.classList.remove('hidden-container');
+
+                            applyPermissions(userRole);
+
+                            switchTab('visualizar');
+
+                        } else {
+
+                            if (errorMessage) {
+
+                                errorMessage.textContent = 'Usuário ou senha incorretos.';
+
+                                errorMessage.classList.remove('hidden');
+
+                            }
+
+                        }
+
+                    } catch (e) {
+
+                        console.error("Erro no login:", e);
+
+                        errorMessage.textContent = 'Erro no login. Tente novamente mais tarde.';
+
+                        errorMessage.classList.remove('hidden');
+
+                    }
+
+                });
+
+            }
+
+
+
+            if (logoutButton) {
+
+                logoutButton.addEventListener('click', () => {
+
+                    if (loginContainer && mainContainer) {
+
+                        loginContainer.classList.remove('hidden-container');
+
+                        mainContainer.classList.add('hidden-container');
+
+                    }
+
+                    userRole = null;
+
+                    loggedInUser = null;
+
+                    usernameInput.value = '';
+
+                    passwordInput.value = '';
+
+                    for (const key in tabButtons) {
+
+                        if (tabButtons[key]) {
+
+                            tabButtons[key].classList.remove('hidden-container');
+
+                        }
+
+                    }
+
+                    if (porteDetailsContainer) porteDetailsContainer.style.display = 'none';
+
+                    if (generatedProfileContainer) generatedProfileContainer.classList.add('hidden');
+
+                    if (addCivilSuccessMessage) addCivilSuccessMessage.classList.add('hidden');
+
+                    if (addCorpoSuccessMessage) addCorpoSuccessMessage.classList.add('hidden');
+
+                    window.location.reload();
+
+                });
+
+            }
+
+
+
+            // Utility function to upload image
+
+            const uploadImage = async (file, path, userId) => {
+
+                if (!file) return null;
+
+                const storageRef = ref(storage, `${path}/${userId}/${Date.now()}_${file.name}`);
+
+                const snapshot = await uploadBytes(storageRef, file);
+
+                return await getDownloadURL(snapshot.ref);
+
+            };
+
+
+
+            // Admin Panel Logic (Add New Corpo Member)
+
+            if (addCorpoForm) {
+
+                addCorpoForm.addEventListener('submit', async (event) => {
+
+                    event.preventDefault();
+
+                    if (!db || userRole === 'praça') {
+
+                        console.error("Ação não permitida para o seu nível de acesso.");
+
+                        return;
+
+                    }
+
+                    const newUser = {
+
+                        username: document.getElementById('new-corpo-name').value.trim().replace(/\s+/g, '').toLowerCase(),
+
+                        password: document.getElementById('new-corpo-password').value.trim(),
+
+                        role: document.getElementById('new-corpo-role').value,
+
+                    };
+
+                    const newCorpoMember = {
+
+                        name: document.getElementById('new-corpo-name').value.trim(),
+
+                        rg: document.getElementById('new-corpo-rg').value.trim(),
+
+                        cnh: document.getElementById('new-corpo-cnh').value,
+
+                        porte: document.getElementById('new-corpo-porte').value,
+
+                        status: document.getElementById('new-corpo-status').value,
+
+                        birthdate: document.getElementById('new-corpo-birthdate').value.trim(),
+
+                        policeArea: document.getElementById('new-corpo-police-area').value,
+
+                        isCorpo: true,
+
+                        role: newUser.role,
+
+                        lastKnownLocation: 'Nenhum'
+
+                    };
+
+
+
+                    try {
+
+                        const usersCollectionRef = collection(db, USERS_COLLECTION);
+
+                        await setDoc(doc(usersCollectionRef, newUser.username), newUser);
+
+                        
+
+                        const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
+
+                        await addDoc(citizensCollectionRef, newCorpoMember);
+
+
+
+                        await logAction('Adicionou Membro da Corporação', `Nome: ${newCorpoMember.name}, RG: ${newCorpoMember.rg}, Nível: ${newUser.role}`);
+
+                        addCorpoForm.reset();
+
+                        if (addCorpoSuccessMessage) {
+
+                            addCorpoSuccessMessage.textContent = 'Membro da Corporação e login cadastrados com sucesso!';
+
+                            addCorpoSuccessMessage.classList.remove('hidden');
+
+                            setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 5000);
+
+                        }
+
+                    } catch (e) {
+
+                        console.error("Erro ao adicionar membro da corporação: ", e);
+
+                        addCorpoSuccessMessage.textContent = 'Erro ao cadastrar. Verifique as permissões do Firebase.';
+
+                        addCorpoSuccessMessage.classList.remove('hidden');
+
+                        addCorpoSuccessMessage.classList.add('text-red-600');
+
+                        setTimeout(() => addCorpoSuccessMessage.classList.add('hidden'), 5000);
+
+                    }
+
+                });
+
+            }
+
+
+
+            // Admin Panel Logic (Add New Civil)
+
+            if (addCivilForm) {
+
+                addCivilForm.addEventListener('submit', async (event) => {
+
+                    event.preventDefault();
+
+                    if (!db || userRole === 'praça') {
+
+                        console.error("Ação não permitida para o seu nível de acesso.");
+
+                        return;
+
+                    }
+
+
+
+                    civilSubmitButton.disabled = true;
+
+                    civilSubmitButton.textContent = 'Salvando...';
+
+                    addCivilSuccessMessage.classList.add('hidden');
+
+                    profileErrorMessage.classList.add('hidden');
+
+
+
+                    let porteImageURL = null;
+
+
+
+                    try {
+
+                        const newCivilPorteImgInput = document.getElementById('new-civil-porte-img');
+
+                        if (newCivilPorteImgInput.files.length > 0 && newCivilPorteSelect.value === 'Sim') {
+
+                            const uniqueUploadId = loggedInUser.username || crypto.randomUUID();
+
+                            porteImageURL = await uploadImage(newCivilPorteImgInput.files[0], UPLOADS_FOLDER, uniqueUploadId);
+
+                        }
+
+                    } catch (e) {
+
+                        console.error("Erro ao fazer upload da imagem:", e);
+
+                        civilSubmitButton.disabled = false;
+
+                        civilSubmitButton.textContent = 'Erro ao Salvar';
+
+                        addCivilSuccessMessage.textContent = 'Erro ao salvar. Verifique as permissões de Storage do Firebase.';
+
+                        addCivilSuccessMessage.classList.remove('hidden');
+
+                        addCivilSuccessMessage.classList.add('text-red-600');
+
+                        setTimeout(() => addCivilSuccessMessage.classList.add('hidden'), 5000);
+
+                        return;
+
+                    }
+
+
+
+                    const civilData = {
+
+                        name: document.getElementById('new-civil-name').value.trim(),
+
+                        rg: document.getElementById('new-civil-rg').value.trim(),
+
+                        cnh: document.getElementById('new-civil-cnh').value,
+
+                        porte: document.getElementById('new-civil-porte').value,
+
+                        status: document.getElementById('new-civil-status').value,
+
+                        birthdate: document.getElementById('new-civil-birthdate').value.trim(),
+
+                        policeArea: 'Nenhum',
+
+                        isCorpo: false,
+
+                        perfilCriminal: generatedProfile.textContent || '',
+
+                        lastKnownLocation: newCivilLocationSelect.value,
+
+                        porteDetails: newCivilPorteSelect.value === 'Sim' ? {
+
+                            imageURL: porteImageURL,
+
+                            numero: document.getElementById('new-civil-porte-num').value.trim() || '',
+
+                            especie: document.getElementById('new-civil-porte-esp').value.trim() || '',
+
+                            categoria: document.getElementById('new-civil-porte-cat').value.trim() || '',
+
+                            marca: document.getElementById('new-civil-porte-marca').value.trim() || '',
+
+                            dataExpedicao: document.getElementById('new-civil-porte-data').value.trim() || '',
+
+                            validade: document.getElementById('new-civil-porte-validade').value.trim() || ''
+
+                        } : null
+
+                    };
+
+
+
+                    try {
+
+                        const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
+
+                        if (editingCitizenId) {
+
+                            if (userRole === 'comandante') {
+
+                                await updateDoc(doc(citizensCollectionRef, editingCitizenId), civilData);
+
+                                await logAction('Editou Civil', `Nome: ${civilData.name}, RG: ${civilData.rg}`);
+
+                                editingCitizenId = null;
+
+                                civilSubmitButton.textContent = 'Cadastrar Civil';
+
+                            } else {
+
+                                console.error("Ação não permitida para o seu nível de acesso.");
+
+                                return;
+
+                            }
+
+                        } else {
+
+                            await addDoc(citizensCollectionRef, civilData);
+
+                            await logAction('Adicionou Civil', `Nome: ${civilData.name}, RG: ${civilData.rg}`);
+
+                        }
+
+                        addCivilForm.reset();
+
+                        if (addCivilSuccessMessage) {
+
+                            addCivilSuccessMessage.textContent = 'Civil cadastrado com sucesso!';
+
+                            addCivilSuccessMessage.classList.remove('hidden');
+
+                            setTimeout(() => addCivilSuccessMessage.classList.add('hidden'), 3000);
+
+                        }
+
+                        generatedProfileContainer.classList.add('hidden');
+
+                        generatedProfile.textContent = '';
+
+                        if (porteDetailsContainer) porteDetailsContainer.style.display = 'none';
+
+                    } catch (e) {
+
+                        console.error("Erro ao adicionar/atualizar documento: ", e);
+
+                    } finally {
+
+                        civilSubmitButton.disabled = false;
+
+                        civilSubmitButton.textContent = 'Cadastrar Civil';
+
+                    }
+
+                });
+
+            }
+
+
+
+            // Gemini API call for generating criminal profile
+
+            if (newCivilStatusSelect) {
+
+                newCivilStatusSelect.addEventListener('change', () => {
+
+                    if (newCivilStatusSelect.value.includes('Irregular') && (userRole === 'oficial' || userRole === 'comandante')) {
+
+                        generateProfileButton.classList.remove('hidden');
+
+                    } else {
+
+                        generateProfileButton.classList.add('hidden');
+
+                        generatedProfileContainer.classList.add('hidden');
+
+                        generatedProfile.textContent = '';
+
+                    }
+
+                });
+
+            }
+
+
+
+            if (generateProfileButton) {
+
+                generateProfileButton.addEventListener('click', async () => {
+
+                    const civilName = document.getElementById('new-civil-name').value.trim();
+
+                    if (!civilName) {
+
+                        profileErrorMessage.textContent = 'Por favor, insira um nome para gerar o perfil.';
+
+                        profileErrorMessage.classList.remove('hidden');
+
+                        setTimeout(() => profileErrorMessage.classList.add('hidden'), 3000);
+
+                        return;
+
+                    }
+
+
+
+                    generatedProfileContainer.classList.remove('hidden');
+
+                    generatedProfile.textContent = '';
+
+                    loadingSpinner.classList.remove('hidden');
+
+                    profileErrorMessage.classList.add('hidden');
+
+
+
+                    const prompt = `Gere um perfil criminal fictício para a pessoa chamada "${civilName}". O perfil deve incluir um resumo narrativo da história criminosa, uma lista de crimes cometidos, os locais de atuação e uma lista de contatos conhecidos. Responda APENAS com um objeto JSON, sem nenhum texto adicional. A estrutura do JSON deve ser: {"historia": "string", "crimes": ["string"], "locais_de_acao": ["string"], "contatos_conhecidos": ["string"]}.`;
+
+                    
+
+                    const payload = {
+
+                        contents: [{ parts: [{ text: prompt }] }],
+
+                        generationConfig: {
+
+                            responseMimeType: "application/json",
+
+                            responseSchema: {
+
+                                type: "OBJECT",
+
+                                properties: {
+
+                                    "historia": { "type": "STRING" },
+
+                                    "crimes": { "type": "ARRAY", "items": { "type": "STRING" } },
+
+                                    "locais_de_acao": { "type": "ARRAY", "items": { "type": "STRING" } },
+
+                                    "contatos_conhecidos": { "type": "ARRAY", "items": { "type": "STRING" } }
+
+                                },
+
+                                "propertyOrdering": ["historia", "crimes", "locais_de_acao", "contatos_conhecidos"]
+
+                            }
+
+                        }
+
+                    };
+
+                    
+
+                    try {
+
+                        let retries = 0;
+
+                        const maxRetries = 3;
+
+                        let response;
+
+                        while (retries < maxRetries) {
+
+                            try {
+
+                                response = await fetch(API_URL, {
+
+                                    method: 'POST',
+
+                                    headers: { 'Content-Type': 'application/json' },
+
+                                    body: JSON.stringify(payload)
+
+                                });
+
+                                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                                break;
+
+                            } catch (e) {
+
+                                retries++;
+
+                                if (retries >= maxRetries) throw e;
+
+                                await new Promise(res => setTimeout(res, 2 ** retries * 1000));
+
+                            }
+
+                        }
+
+
+
+                        const result = await response.json();
+
+                        const candidate = result?.candidates?.[0];
+
+                        
+
+                        if (candidate?.content?.parts?.[0]?.text) {
+
+                            const jsonText = candidate.content.parts[0].text;
+
+                            const profileData = JSON.parse(jsonText);
+
+                            generatedProfile.textContent = `História: ${profileData.historia}\n\nCrimes: ${profileData.crimes.join(', ')}\n\nLocais de Atuação: ${profileData.locais_de_acao.join(', ')}\n\nContatos Conhecidos: ${profileData.contatos_conhecidos.join(', ')}`;
+
+                        } else {
+
+                            throw new Error("Resposta da API inválida.");
+
+                        }
+
+                    } catch (e) {
+
+                        console.error("Erro na chamada da API:", e);
+
+                        profileErrorMessage.textContent = 'Erro ao gerar o perfil. Tente novamente.';
+
+                        profileErrorMessage.classList.remove('hidden');
+
+                        generatedProfile.textContent = '';
+
+                    } finally {
+
+                        loadingSpinner.classList.add('hidden');
+
+                    }
+
+                });
+
+            }
+
+
+
+            // Visualization and Search Logic
+
+            const renderCitizensList = () => {
+
+                if (citizensTableBody) {
+
+                    citizensTableBody.innerHTML = '';
+
+                    const query = listSearchInput.value.toLowerCase().trim();
+
+                    const locationFilter = locationFilterSelect.value.toLowerCase();
+
+                    
+
+                    const filteredCitizens = citizens.filter(citizen =>
+
+                        (citizen.name.toLowerCase().includes(query) || citizen.rg.toLowerCase().includes(query)) &&
+
+                        (locationFilter === '' || citizen.lastKnownLocation?.toLowerCase() === locationFilter)
+
+                    );
+
+                    
+
+                    if (filteredCitizens.length === 0) {
+
+                        if (noResultsMessage) noResultsMessage.classList.remove('hidden');
+
+                    } else {
+
+                        if (noResultsMessage) noResultsMessage.classList.add('hidden');
+
+                        filteredCitizens.forEach(citizen => {
+
+                            const row = document.createElement('tr');
+
+                            row.classList.add('hover:bg-gray-700', 'transition-colors', 'cursor-pointer');
+
+                            row.dataset.id = citizen.id; // Store Firestore document ID
+
+                            
+
+                            const actionsCell = userRole === 'praça' ? '' : `
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 space-x-2">
+
+                                    ${userRole === 'comandante' ? `<button class="text-blue-400 hover:text-blue-300 font-semibold" data-action="edit" data-id="${citizen.id}">Editar</button>` : ''}
+
+                                    ${userRole === 'comandante' ? `<button class="text-red-400 hover:text-red-300 font-semibold" data-action="delete" data-id="${citizen.id}">Excluir</button>` : ''}
+
+                                </td>
+
+                            `;
+
+
+
+                            row.innerHTML = `
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${citizen.name}</td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${citizen.rg}</td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${citizen.status.includes('Irregular') ? 'text-red-400' : 'text-green-400'}">${citizen.status}</td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${citizen.policeArea}</td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${citizen.lastKnownLocation || 'N/A'}</td>
+
+                                ${actionsCell}
+
+                            `;
+
+                            citizensTableBody.appendChild(row);
+
+                        });
+
+                    }
+
+                }
+
+            };
+
+
+
+            // Delegation for Edit/Delete buttons and show details
+
+            if (citizensTableBody) {
+
+                citizensTableBody.addEventListener('click', (e) => {
+
+                    const target = e.target;
+
+                    const action = target.getAttribute('data-action');
+
+                    const id = target.getAttribute('data-id');
+
+
+
+                    if (action) {
+
+                        // Action buttons clicked (Edit/Delete)
+
+                        if (userRole === 'comandante' && action === 'edit' && id) {
+
+                            const citizenToEdit = citizens.find(c => c.id === id);
+
+                            if (citizenToEdit) {
+
+                                editingCitizenId = id;
+
+                                document.getElementById('new-civil-name').value = citizenToEdit.name;
+
+                                document.getElementById('new-civil-rg').value = citizenToEdit.rg;
+
+                                document.getElementById('new-civil-cnh').value = citizenToEdit.cnh;
+
+                                document.getElementById('new-civil-porte').value = citizenToEdit.porte;
+
+                                if (citizenToEdit.porte === 'Sim') {
+
+                                    porteDetailsContainer.style.display = 'block';
+
+                                    if (citizenToEdit.porteDetails) {
+
+                                        document.getElementById('new-civil-porte-img').value = '';
+
+                                        document.getElementById('new-civil-porte-num').value = citizenToEdit.porteDetails.numero || '';
+
+                                        document.getElementById('new-civil-porte-esp').value = citizenToEdit.porteDetails.especie || '';
+
+                                        document.getElementById('new-civil-porte-cat').value = citizenToEdit.porteDetails.categoria || '';
+
+                                        document.getElementById('new-civil-porte-marca').value = citizenToEdit.porteDetails.marca || '';
+
+                                        document.getElementById('new-civil-porte-data').value = citizenToEdit.porteDetails.dataExpedicao || '';
+
+                                        document.getElementById('new-civil-porte-validade').value = citizenToEdit.porteDetails.validade || '';
+
+                                    }
+
+                                } else {
+
+                                    porteDetailsContainer.style.display = 'none';
+
+                                }
+
+                                document.getElementById('new-civil-status').value = citizenToEdit.status;
+
+                                document.getElementById('new-civil-birthdate').value = citizenToEdit.birthdate;
+
+                                document.getElementById('new-civil-location').value = citizenToEdit.lastKnownLocation || '';
+
+                                civilSubmitButton.textContent = 'Atualizar Civil';
+
+                                switchTab('civil');
+
+                            }
+
+                        } else if (userRole === 'comandante' && action === 'delete' && id) {
+
+                            modal.classList.remove('hidden');
+
+                            confirmDeleteButton.onclick = async () => {
+
+                                modal.classList.add('hidden');
+
+                                try {
+
+                                    const citizenToDelete = citizens.find(c => c.id === id);
+
+                                    if (citizenToDelete) {
+
+                                        await deleteDoc(doc(db, CITIZENS_COLLECTION, id));
+
+                                        await logAction('Excluiu Cidadão', `Nome: ${citizenToDelete.name}, RG: ${citizenToDelete.rg}`);
+
+                                    }
+
+                                } catch (e) {
+
+                                    console.error("Erro ao excluir documento: ", e);
+
+                                }
+
+                            };
+
+                        }
+
+                    } else if (target.tagName !== 'BUTTON') {
+
+                        // Row clicked (not an action button)
+
+                        const row = target.closest('tr');
+
+                        const id = row?.dataset?.id;
+
+                        const citizenToView = citizens.find(c => c.id === id);
+
+                        if (citizenToView) {
+
+                            renderCitizenDetail(citizenToView);
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+
+            const renderCitizenDetail = (citizen) => {
+
+                citizenDetailContent.innerHTML = `
+
+                    <div class="flex items-center space-x-4 mb-4">
+
+                        <div>
+
+                            <h2 class="text-3xl font-bold text-white">${citizen.name}</h2>
+
+                            <p class="text-gray-400">RG: ${citizen.rg}</p>
+
+                            <p class="text-sm font-semibold ${citizen.status.includes('Irregular') ? 'text-red-400' : 'text-green-400'}">${citizen.status}</p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div class="p-4 bg-gray-700 rounded-lg">
+
+                            <p class="text-gray-400">CNH: <span class="text-white">${citizen.cnh}</span></p>
+
+                            <p class="text-gray-400">Porte de Arma: <span class="text-white">${citizen.porte}</span></p>
+
+                            <p class="text-gray-400">Data de Nascimento: <span class="text-white">${citizen.birthdate}</span></p>
+
+                            <p class="text-gray-400">Última Localização: <span class="text-white">${citizen.lastKnownLocation || 'N/A'}</span></p>
+
+                        </div>
+
+                        ${citizen.isCorpo ? `<div class="p-4 bg-gray-700 rounded-lg">
+
+                            <p class="text-gray-400">Área da Polícia: <span class="text-white">${citizen.policeArea}</span></p>
+
+                            <p class="text-gray-400">Nível de Acesso: <span class="text-white">${citizen.role || 'N/A'}</span></p>
+
+                        </div>` : ''}
+
+                    </div>
+
+                    ${citizen.porte === 'Sim' && citizen.porteDetails ? `
+
+                        <div class="mt-6 p-4 bg-gray-700 rounded-lg">
+
+                            <h3 class="text-lg font-semibold text-white mb-2">Detalhes do Porte de Arma</h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                <div class="col-span-1 md:col-span-2">
+
+                                    ${citizen.porteDetails.imageURL ? `<img src="${citizen.porteDetails.imageURL}" onerror="this.src='https://placehold.co/400x200/3b82f6/FFFFFF?text=Imagem%20N%C3%A3o%20Encontrada'" class="w-full rounded-lg object-cover" alt="Imagem do Porte de Arma">` : `<div class="w-full h-auto bg-gray-800 rounded-lg flex items-center justify-center p-4">Sem Imagem</div>`}
+
+                                </div>
+
+                                <p class="text-gray-400">Nº de Registro: <span class="text-white">${citizen.porteDetails.numero}</span></p>
+
+                                <p class="text-gray-400">Espécie: <span class="text-white">${citizen.porteDetails.especie}</span></p>
+
+                                <p class="text-gray-400">Categoria: <span class="text-white">${citizen.porteDetails.categoria}</span></p>
+
+                                <p class="text-gray-400">Marca & Calibre: <span class="text-white">${citizen.porteDetails.marca}</span></p>
+
+                                <p class="text-gray-400">Data de Expedição: <span class="text-white">${citizen.porteDetails.dataExpedicao}</span></p>
+
+                                <p class="text-gray-400">Validade: <span class="text-white">${citizen.porteDetails.validade}</span></p>
+
+                            </div>
+
+                        </div>
+
+                    ` : ''}
+
+                    ${citizen.status.includes('Irregular') && citizen.perfilCriminal ? `
+
+                        <div class="mt-6 p-4 bg-gray-700 rounded-lg">
+
+                            <h3 class="text-lg font-semibold text-white mb-2">Perfil Criminal</h3>
+
+                            <pre class="bg-gray-800 rounded-lg p-4 text-gray-300 whitespace-pre-wrap">${citizen.perfilCriminal}</pre>
+
+                        </div>
+
+                    ` : ''}
+
+                `;
+
+                citizenDetailModal.classList.remove('hidden');
+
+            };
+
+            
+
+            if (closeModalButton) {
+
+                closeModalButton.addEventListener('click', () => {
+
+                    citizenDetailModal.classList.add('hidden');
+
+                });
+
+            }
+
+
+
+            if (cancelDeleteButton) {
+
+                cancelDeleteButton.addEventListener('click', () => {
+
+                    modal.classList.add('hidden');
+
+                });
+
+            }
+
+        });
+
+    </script>
+
 </body>
-</html>
 
-</body>
 </html>
