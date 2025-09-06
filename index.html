@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Consulta PM</title>
+    <title>Sistema de Consulta CPX</title>
     <!-- Inclui a biblioteca Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -47,15 +47,6 @@
         .bg-card {
             background-color: #1a202c;
         }
-        .pin {
-            width: 20px;
-            height: 20px;
-            background-color: red;
-            border-radius: 50%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -87,7 +78,7 @@
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center space-x-4">
                 <img src="https://placehold.co/60x60/3b82f6/FFFFFF?text=PM" alt="Police Badge" class="h-12 w-12 rounded-full">
-                <h1 class="text-3xl font-bold text-white">Sistema de Consulta PM</h1>
+                <h1 class="text-3xl font-bold text-white">Sistema de Consultas CPX</h1>
             </div>
             <button id="logout-button" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
                 Sair
@@ -330,12 +321,6 @@
                     <div id="no-log-entries" class="text-center text-gray-500 font-semibold py-4 hidden">Nenhuma atividade registrada ainda.</div>
                 </div>
             </div>
-
-            <!-- Conteúdo da aba 'Mapa' -->
-            <div id="map-content" class="hidden-container space-y-4">
-                <h2 class="text-xl font-semibold text-gray-200 border-b pb-2 mb-4">Mapa de Busca</h2>
-                <div id="map"></div>
-            </div>
             
             <!-- Modal para visualizar detalhes do cidadão -->
             <div id="citizen-detail-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
@@ -362,7 +347,9 @@
             </div>
         </div>
     </div>
-
+    <footer class="mt-8 text-center text-gray-500 text-sm">
+        Desenvolvedor: Kaleb0
+    </footer>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
@@ -402,10 +389,13 @@
         
         // Esta função deve ser rodada APENAS UMA VEZ para configurar os usuários iniciais.
         // DESCOMENTE A LINHA ABAIXO, execute o site e depois COMENTE NOVAMENTE.
+        // setupInitialUsers();
         const setupInitialUsers = async () => {
              const initialUsers = [
                 { username: 'admin', password: '123', role: 'comandante' },
+                { username: 'comandante2', password: '123', role: 'comandante' },
                 { username: 'oficial1', password: '456', role: 'oficial' },
+                { username: 'oficial2', password: '456', role: 'oficial' },
                 { username: 'soldado', password: '789', role: 'praça' },
             ];
             
@@ -675,11 +665,7 @@
                         console.error("Ação não permitida para o seu nível de acesso.");
                         return;
                     }
-                    const newUser = {
-                        username: document.getElementById('new-corpo-name').value.trim().replace(/\s+/g, '').toLowerCase(),
-                        password: document.getElementById('new-corpo-password').value.trim(),
-                        role: document.getElementById('new-corpo-role').value,
-                    };
+                    const newUsername = document.getElementById('new-corpo-name').value.trim().replace(/\s+/g, '').toLowerCase();
                     const newCorpoMember = {
                         name: document.getElementById('new-corpo-name').value.trim(),
                         rg: document.getElementById('new-corpo-rg').value.trim(),
@@ -689,8 +675,13 @@
                         birthdate: document.getElementById('new-corpo-birthdate').value.trim(),
                         policeArea: document.getElementById('new-corpo-police-area').value,
                         isCorpo: true,
-                        role: newUser.role,
+                        role: document.getElementById('new-corpo-role').value,
                         lastKnownLocation: 'Nenhum'
+                    };
+                    const newUser = {
+                        username: newUsername,
+                        password: document.getElementById('new-corpo-password').value.trim(),
+                        role: newCorpoMember.role
                     };
 
                     try {
@@ -775,7 +766,7 @@
                     try {
                         const citizensCollectionRef = collection(db, CITIZENS_COLLECTION);
                         if (editingCitizenId) {
-                            if (userRole === 'comandante') {
+                            if (userRole === 'comandante' || userRole === 'oficial') {
                                 await updateDoc(doc(citizensCollectionRef, editingCitizenId), civilData);
                                 await logAction('Editou Civil', `Nome: ${civilData.name}, RG: ${civilData.rg}`);
                                 editingCitizenId = null;
@@ -912,12 +903,17 @@
                         if (noResultsMessage) noResultsMessage.classList.add('hidden');
                         filteredCitizens.forEach(citizen => {
                             const row = document.createElement('tr');
-                            row.classList.add('hover:bg-gray-700', 'transition-colors', 'cursor-pointer');
+                            row.classList.add('hover:bg-gray-700', 'transition-colors');
                             row.dataset.id = citizen.id; // Store Firestore document ID
                             
-                            const actionsCell = userRole === 'praça' ? '' : `
+                            const actionsCell = userRole === 'praça' ? `
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                    <button class="text-blue-400 hover:text-blue-300 font-semibold" data-action="view" data-id="${citizen.id}">Ver Detalhes</button>
+                                </td>
+                            ` : `
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 space-x-2">
-                                    ${userRole === 'comandante' ? `<button class="text-blue-400 hover:text-blue-300 font-semibold" data-action="edit" data-id="${citizen.id}">Editar</button>` : ''}
+                                    <button class="text-blue-400 hover:text-blue-300 font-semibold" data-action="view" data-id="${citizen.id}">Ver Detalhes</button>
+                                    ${userRole === 'comandante' || userRole === 'oficial' ? `<button class="text-yellow-400 hover:text-yellow-300 font-semibold" data-action="edit" data-id="${citizen.id}">Editar</button>` : ''}
                                     ${userRole === 'comandante' ? `<button class="text-red-400 hover:text-red-300 font-semibold" data-action="delete" data-id="${citizen.id}">Excluir</button>` : ''}
                                 </td>
                             `;
@@ -943,57 +939,49 @@
                     const action = target.getAttribute('data-action');
                     const id = target.getAttribute('data-id');
 
-                    if (action) {
-                        // Action buttons clicked (Edit/Delete)
-                        if (userRole === 'comandante' && action === 'edit' && id) {
-                            const citizenToEdit = citizens.find(c => c.id === id);
-                            if (citizenToEdit) {
-                                editingCitizenId = id;
-                                document.getElementById('new-civil-name').value = citizenToEdit.name;
-                                document.getElementById('new-civil-rg').value = citizenToEdit.rg;
-                                document.getElementById('new-civil-cnh').value = citizenToEdit.cnh;
-                                document.getElementById('new-civil-porte').value = citizenToEdit.porte;
-                                if (citizenToEdit.porte === 'Sim') {
-                                    porteDetailsContainer.style.display = 'block';
-                                    if (citizenToEdit.porteDetails) {
-                                        document.getElementById('new-civil-porte-img').value = '';
-                                        document.getElementById('new-civil-porte-num').value = citizenToEdit.porteDetails.numero || '';
-                                        document.getElementById('new-civil-porte-esp').value = citizenToEdit.porteDetails.especie || '';
-                                        document.getElementById('new-civil-porte-cat').value = citizenToEdit.porteDetails.categoria || '';
-                                        document.getElementById('new-civil-porte-marca').value = citizenToEdit.porteDetails.marca || '';
-                                        document.getElementById('new-civil-porte-data').value = citizenToEdit.porteDetails.dataExpedicao || '';
-                                        document.getElementById('new-civil-porte-validade').value = citizenToEdit.porteDetails.validade || '';
-                                    }
-                                } else {
-                                    porteDetailsContainer.style.display = 'none';
+                    if (action && id) {
+                        const citizenToEdit = citizens.find(c => c.id === id);
+
+                        if (action === 'edit' && userRole === 'comandante' || userRole === 'oficial' && citizenToEdit) {
+                            editingCitizenId = id;
+                            document.getElementById('new-civil-name').value = citizenToEdit.name || '';
+                            document.getElementById('new-civil-rg').value = citizenToEdit.rg || '';
+                            document.getElementById('new-civil-cnh').value = citizenToEdit.cnh || 'Não';
+                            document.getElementById('new-civil-porte').value = citizenToEdit.porte || 'Não';
+                            
+                            if (citizenToEdit.porte === 'Sim') {
+                                porteDetailsContainer.style.display = 'block';
+                                if (citizenToEdit.porteDetails) {
+                                    document.getElementById('new-civil-porte-num').value = citizenToEdit.porteDetails.numero || '';
+                                    document.getElementById('new-civil-porte-esp').value = citizenToEdit.porteDetails.especie || '';
+                                    document.getElementById('new-civil-porte-cat').value = citizenToEdit.porteDetails.categoria || '';
+                                    document.getElementById('new-civil-porte-marca').value = citizenToEdit.porteDetails.marca || '';
+                                    document.getElementById('new-civil-porte-data').value = citizenToEdit.porteDetails.dataExpedicao || '';
+                                    document.getElementById('new-civil-porte-validade').value = citizenToEdit.porteDetails.validade || '';
                                 }
-                                document.getElementById('new-civil-status').value = citizenToEdit.status;
-                                document.getElementById('new-civil-birthdate').value = citizenToEdit.birthdate;
-                                document.getElementById('new-civil-location').value = citizenToEdit.lastKnownLocation || '';
-                                civilSubmitButton.textContent = 'Atualizar Civil';
-                                switchTab('civil');
+                            } else {
+                                porteDetailsContainer.style.display = 'none';
                             }
-                        } else if (userRole === 'comandante' && action === 'delete' && id) {
+                            
+                            document.getElementById('new-civil-status').value = citizenToEdit.status || 'Regular';
+                            document.getElementById('new-civil-birthdate').value = citizenToEdit.birthdate || '';
+                            document.getElementById('new-civil-location').value = citizenToEdit.lastKnownLocation || 'Não Informado';
+                            
+                            civilSubmitButton.textContent = 'Atualizar Civil';
+                            switchTab('civil');
+                            
+                        } else if (action === 'delete' && userRole === 'comandante' && citizenToEdit) {
                             modal.classList.remove('hidden');
                             confirmDeleteButton.onclick = async () => {
                                 modal.classList.add('hidden');
                                 try {
-                                    const citizenToDelete = citizens.find(c => c.id === id);
-                                    if (citizenToDelete) {
-                                        await deleteDoc(doc(db, CITIZENS_COLLECTION, id));
-                                        await logAction('Excluiu Cidadão', `Nome: ${citizenToDelete.name}, RG: ${citizenToDelete.rg}`);
-                                    }
+                                    await deleteDoc(doc(db, CITIZENS_COLLECTION, id));
+                                    await logAction('Excluiu Cidadão', `Nome: ${citizenToEdit.name}, RG: ${citizenToEdit.rg}`);
                                 } catch (e) {
                                     console.error("Erro ao excluir documento: ", e);
                                 }
                             };
-                        }
-                    } else if (target.tagName !== 'BUTTON') {
-                        // Row clicked (not an action button)
-                        const row = target.closest('tr');
-                        const id = row?.dataset?.id;
-                        const citizenToView = citizens.find(c => c.id === id);
-                        if (citizenToView) {
+                        } else if (action === 'view' && citizenToEdit) {
                             renderCitizenDetail(citizenToView);
                         }
                     }
